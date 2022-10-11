@@ -14,9 +14,7 @@ int main(int argc, char *argv) {
 		pid_t parentID = getppid();
 		pid_t childID = getpid();
 		printf("Parent ID: %d\nChild ID: %d\n", parentID, childID);
-		execl("/bin/ls", "ls", "-l", "/home/royenheart", NULL);
-		// execl("/bin/ls", "ls", "-l", "/home/dd", NULL);
-		// execl("/bin/xx", "ls", "-l", "fsads", NULL);
+		execl("/bin/ls", "ls", "-l", "/", NULL);
 		perror("exec error");
 		exit(0);
 	} else if (pid > 0) {

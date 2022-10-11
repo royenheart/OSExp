@@ -1,7 +1,7 @@
-#include <sys/types.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 pid_t getpid(void);
 pid_t getppid(void);

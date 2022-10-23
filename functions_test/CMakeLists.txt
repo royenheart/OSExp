@@ -9,3 +9,7 @@ add_executable(get_file_locate
 add_executable(stream
     stream.cpp
 )
+
+add_executable(typeSize
+    typeSize.c
+)

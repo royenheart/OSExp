@@ -1,8 +1,21 @@
 # README
 
 - [README](#readme)
+  - [编译说明](#编译说明)
+    - [特性](#特性)
   - [实验流程](#实验流程)
   - [hexdump命令使用](#hexdump命令使用)
+
+## 编译说明
+
+### 特性
+
+1. `Jemalloc`
+
+    ```shell
+    # Ubuntu / Debian
+    apt install libjemalloc-dev
+    ```
 
 ## 实验流程
 

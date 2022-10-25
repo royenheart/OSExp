@@ -1,57 +1,66 @@
+/**
+ * @file read.c
+ * @author 
+ * @brief 基础文件系统数据读入
+ * @version 0.1
+ * @date 2022-10-25
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "xtfs_limits.h"
 #include "xtfs_struct.h"
+#include "xtfs_manage.h"
+#include "io.h"
 
-// 读取的inode表
+#ifdef DEBUG
+#include <assert.h>
+#endif
+
+// inode表
 struct inode inode_table[NR_INODE];
 // 文件系统文件名
-char *fs_name;
-
-/**
- * @brief 读取inode表
- * 
- */
-void read_inode_block()
-{
-    // 文件系统文件索引
-    FILE *fp_xtfs;
-	fp_xtfs = fopen(fs_name, "r");
-    fseek(fp_xtfs, 0, SEEK_SET);
-	fread((char *)inode_table, 1, BLOCK_SIZE, fp_xtfs);
-    fclose(fp_xtfs);
-}
-
-void read_from_block(long int offset, char* buffer, int size) {
-    // 文件系统文件索引
-    FILE *fp_xtfs;
-    fp_xtfs = fopen(fs_name, "r");
-    fseek(fp_xtfs, offset, SEEK_SET);
-    fread(buffer, 1, size, fp_xtfs);
-    fclose(fp_xtfs);
-}
+char *fs_name = NULL;
+// 文件系统文件索引
+FILE *fp_xtfs = NULL;
 
 int main(int argc, char* argv[]) {
     char filename[MAX_FILE_NAME_LENGTH] = {0};
-    short index_table[BLOCK_SIZE / 2];
+    short index_table[BLOCK_SIZE / 2] = {0};
     int i;
 
+    if (strlen(argv[1]) > MAX_FILE_NAME_LENGTH) {
+        printf("File name too long!: %s\n", argv[1]);
+        xtfs_exit(EXIT_FAILURE);
+    }
+    if (strlen(argv[2]) > MAX_FS_NAME_LENGTH) {
+        printf("XTFS name too long!: %s\n", argv[2]);
+        xtfs_exit(EXIT_FAILURE);
+    }
     strcpy(filename, argv[1]);
     fs_name = argv[2];
-    read_inode_block();
+    fp_xtfs = fopen(fs_name, "r");
+    #ifdef DEBUG
+    assert( fp_xtfs != NULL );
+    #endif
+    read_file(fp_xtfs, 0, (char *)inode_table, BLOCK_SIZE);
     for (i = 0; i < NR_INODE; i++) {
         // 未加入目录，目前只以文件名判断
         if (strcmp(inode_table[i].filename, filename) == 0) {
             long int blocknr = inode_table[i].index_table_blocknr;
-            read_from_block(blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            read_file(fp_xtfs, blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
             break;
         }
     }
 
     if (i == NR_INODE) {
         printf("No such file: %s\n", filename);
-        exit(EXIT_FAILURE);
+        fclose(fp_xtfs);
+        xtfs_exit(EXIT_FAILURE);
     }
 
     // 根据数据块索引表读入文件数据
@@ -61,9 +70,10 @@ int main(int argc, char* argv[]) {
         if (block_pos == 0) {
             break;
         }
-        read_from_block(block_pos * BLOCK_SIZE, data, BLOCK_SIZE);
+        read_file(fp_xtfs, block_pos * BLOCK_SIZE, data, BLOCK_SIZE);
         printf("%s", data);
     }
-    
+
+    fclose(fp_xtfs);
     return(EXIT_SUCCESS);
 }

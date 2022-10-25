@@ -1,22 +1,30 @@
+/**
+ * @file copy.c
+ * @author 
+ * @brief 基础文件系统文件拷贝
+ * @version 0.1
+ * @date 2022-10-25
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "xtfs_limits.h"
 #include "xtfs_struct.h"
-
-/**
- * @brief 文件拷贝
- *
- */
+#include "xtfs_manage.h"
+#include "io.h"
 
 // 读取的inode表
 struct inode inode_table[NR_INODE];
 // 读取的数据块位图
 char block_map[BLOCK_SIZE];
 // 文件系统文件名
-char *fs_name;
+char *fs_name = NULL;
 // 文件系统文件索引
-FILE *fp_xtfs;
+FILE *fp_xtfs = NULL;
 
 /**
  * @brief 获取空余数据块
@@ -48,21 +56,23 @@ short get_block()
 		}
 	}
 	printf("block_map is empty.\n");
-	exit(0);
+	xtfs_exit(EXIT_FAILURE);
 }
 
 /**
- * @brief 向文件系统文件写入数据
- *
- * @param fp 文件系统文件索引
- * @param offset 偏移量（字节为单位）
- * @param buffer 需要写入的字节数组
- * @param size 字节数组元素的个数
+ * @brief 根据需要的块数获取所有可行的数据块编号
+ * 
+ * @param need 需要的数据块数
+ * @return short* 数据块编号数组
  */
-void write_block(FILE *fp, long int offset, char *buffer, int size)
-{
-	fseek(fp, offset, SEEK_SET);
-	fwrite(buffer, 1, size, fp);
+short* get_all_block(int need) {
+	short *blocknr_s = (short*)xtfs_malloc(BLOCK_SIZE * sizeof(short));
+	memset(blocknr_s, 0, BLOCK_SIZE * sizeof(short));
+	int i;
+	for (i = 0; i < need; i++) {
+		blocknr_s[i] = get_block();
+	}
+	return blocknr_s;
 }
 
 /**
@@ -72,8 +82,8 @@ void write_block(FILE *fp, long int offset, char *buffer, int size)
 void read_first_two_blocks()
 {
 	fp_xtfs = fopen(fs_name, "r+");
-	fread((char *)inode_table, 1, BLOCK_SIZE, fp_xtfs);
-	fread(block_map, 1, BLOCK_SIZE, fp_xtfs);
+	read_file(fp_xtfs, 0, (char *)inode_table, BLOCK_SIZE);
+	read_file(fp_xtfs, BLOCK_SIZE, block_map, BLOCK_SIZE);
 }
 
 /**
@@ -85,11 +95,11 @@ void read_first_two_blocks()
  */
 int copy_blocks(char *filename, short *index_table)
 {
-	FILE *fp;
+	FILE *fp = NULL;
 	int filesize;
-	int i, j;
-	size_t size;
+	int i, need;
 	int blocknr;
+	size_t size;
 	char buffer[BLOCK_SIZE];
 
 	fp = fopen(filename, "r");
@@ -97,16 +107,18 @@ int copy_blocks(char *filename, short *index_table)
 	filesize = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 	memset((char *)index_table, 0, BLOCK_SIZE);
-	// 将整个文件读入到文件系统中（一些文件可能超过BLOCK_SIZE即512字节大小）
-	// i用于指示是否读入完全
-	for (i = 0, j = 0; i < filesize; i += BLOCK_SIZE, j++)
+	// 将整个文件读入到文件系统中，并更新其数据块索引；
+	// 先获取所有可行块，避免空间不够导致的额外开销
+	need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
+	short *blocknr_s = get_all_block(need);
+	for (i = 0; i < need; i++)
 	{
-		blocknr = get_block();
+		blocknr = blocknr_s[i];
 		// 读取文件内容，以每个元素1个字节读入到512大小的字节数组buffer中
 		// 后续读取会以上次读取停留的指针继续
 		size = fread(buffer, 1, BLOCK_SIZE, fp);
-		write_block(fp_xtfs, blocknr * BLOCK_SIZE, buffer, size);
-		index_table[j] = blocknr;
+		write_file(fp_xtfs, blocknr * BLOCK_SIZE, buffer, size);
+		index_table[i] = blocknr;
 	}
 	fclose(fp);
 	return filesize;
@@ -123,7 +135,7 @@ short write_index_table(char *index_table)
 	short index_table_blocknr;
 
 	index_table_blocknr = get_block();
-	write_block(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char *)index_table, BLOCK_SIZE);
+	write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char *)index_table, BLOCK_SIZE);
 	return index_table_blocknr;
 }
 
@@ -155,7 +167,7 @@ void get_empty_inode(char *filename, int filesize, short index_table_blocknr, ch
 	if (i == NR_INODE)
 	{
 		printf("inode_table is empty.\n");
-		exit(0);
+		xtfs_exit(EXIT_FAILURE);
 	}
 }
 
@@ -165,20 +177,21 @@ void get_empty_inode(char *filename, int filesize, short index_table_blocknr, ch
  */
 void write_first_two_blocks()
 {
-	write_block(fp_xtfs, 0, (char *)inode_table, BLOCK_SIZE);
-	write_block(fp_xtfs, 512, block_map, BLOCK_SIZE);
+	write_file(fp_xtfs, 0, (char *)inode_table, BLOCK_SIZE);
+	write_file(fp_xtfs, BLOCK_SIZE, block_map, BLOCK_SIZE);
 	fclose(fp_xtfs);
 }
 
 /**
  * @brief copy
  * 
- * @param argc 参数个数 
+ * @param argc 参数个数
  * @param argv 参数列表
  * @return int 文件拷贝完成状态
  */
 int main(int argc, char *argv[])
 {
+	INIT_XTFS_MANAGE
 	int filesize;
 	short index_table_blocknr;
 	// 文件的数据块索引表
@@ -195,9 +208,9 @@ int main(int argc, char *argv[])
 	// 读取0号和1号inode表和数据块位图数据到进程管理的内存（数组），便于修改
 	// 全局变量：inode_table 和 block_map
 	read_first_two_blocks();
-	// 将文件中内容拷贝到xtfs文件系统中的数据块
+	// 将文件中内容拷贝到xtfs文件系统中
 	filesize = copy_blocks(filename, index_table);
-	// 为文件在xtfs文件系统中申请一个空闲数据块，用于存放其数据块索引表
+	// 将数据块索引表拷贝到xtfs文件系统中
 	index_table_blocknr = write_index_table((char *)index_table);
 	// 在inode表中申请一个空闲inode，存放文件的inode信息
 	get_empty_inode(filename, filesize, index_table_blocknr, type);

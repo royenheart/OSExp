@@ -1,6 +1,7 @@
 #include <asm-generic/errno.h>
 #include <cstddef>
 #include <cstdlib>
+#include <unistd.h>
 #include <iostream>
 #include <string.h>
 #include <pthread.h>
@@ -9,6 +10,8 @@
 /**
  * Using Mutex
  */
+
+#define SLEEP_TIME 1
 
 using namespace std;
 
@@ -26,6 +29,7 @@ void *thread(void *attr) {
     string myname = myAttr.name;
     int eatNum = myAttr.eatNum;
     while (food > 5) {
+        sleep(SLEEP_TIME);
         pthread_mutex_lock(&mutex);
         if (food < eatNum) {
             pthread_mutex_unlock(&mutex);

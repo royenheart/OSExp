@@ -27,3 +27,4 @@ target_link_libraries(read PUBLIC io xtfs_manage)
 
 file(COPY xtfs.img DESTINATION test_file)
 file(COPY hello.c DESTINATION test_file)
+file(COPY testbench.sh DESTINATION .)

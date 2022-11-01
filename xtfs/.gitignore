@@ -1,2 +1,5 @@
 # cmake
 build
+
+# Astyle
+*.orig

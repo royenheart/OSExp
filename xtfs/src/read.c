@@ -1,12 +1,12 @@
 /**
  * @file read.c
- * @author 
+ * @author
  * @brief 基础文件系统数据读入
  * @version 0.1
  * @date 2022-10-25
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include <stdio.h>
@@ -24,9 +24,9 @@
 // inode表
 struct inode inode_table[NR_INODE];
 // 文件系统文件名
-char *fs_name = NULL;
+char* fs_name = NULL;
 // 文件系统文件索引
-FILE *fp_xtfs = NULL;
+FILE* fp_xtfs = NULL;
 
 int main(int argc, char* argv[]) {
     char filename[MAX_FILE_NAME_LENGTH] = {0};
@@ -44,10 +44,10 @@ int main(int argc, char* argv[]) {
     strcpy(filename, argv[1]);
     fs_name = argv[2];
     fp_xtfs = fopen(fs_name, "r");
-    #ifdef DEBUG
-    assert( fp_xtfs != NULL );
-    #endif
-    read_file(fp_xtfs, 0, (char *)inode_table, BLOCK_SIZE);
+#ifdef DEBUG
+    assert(fp_xtfs != NULL);
+#endif
+    read_file(fp_xtfs, 0, (char*)inode_table, BLOCK_SIZE);
     for (i = 0; i < NR_INODE; i++) {
         // 未加入目录，目前只以文件名判断
         if (strcmp(inode_table[i].filename, filename) == 0) {
@@ -75,5 +75,5 @@ int main(int argc, char* argv[]) {
     }
 
     fclose(fp_xtfs);
-    return(EXIT_SUCCESS);
+    return (EXIT_SUCCESS);
 }

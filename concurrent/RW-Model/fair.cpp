@@ -4,9 +4,9 @@
  * @brief 公平机制的读者写者模型信号量实现
  * @version 0.1
  * @date 2022-10-28
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include <iostream>
@@ -29,7 +29,7 @@ using namespace std;
 typedef struct thread_header {
     string name;
     int sleep_time;
-}thread_header;
+} thread_header;
 
 string book = "NULL";
 int writeCount = 0, readCount = 0;
@@ -52,8 +52,8 @@ void readBook(string who) {
     cout << who << " is reading. read: " << book << endl;
 }
 
-void *read(void* header) {
-    thread_header *myheader = (thread_header*)header;
+void* read(void* header) {
+    thread_header* myheader = (thread_header*)header;
     int i;
     for (i = 0; i < MAX_LOOP; i++) {
         sleep(myheader->sleep_time);
@@ -75,11 +75,11 @@ void *read(void* header) {
         }
         sem_post(&x);
     }
-    return((void*)0);
+    return ((void*)0);
 }
 
-void *write(void* header) {
-    thread_header *myheader = (thread_header*)header;
+void* write(void* header) {
+    thread_header* myheader = (thread_header*)header;
     int i;
     for (i = 0; i < MAX_LOOP; i++) {
         sleep(myheader->sleep_time);
@@ -103,10 +103,10 @@ void *write(void* header) {
         }
         sem_post(&y);
     }
-    return((void*)0);
+    return ((void*)0);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     init();
 
     int i;

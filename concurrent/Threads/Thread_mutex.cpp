@@ -24,7 +24,7 @@ struct threadAttr {
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int food = 20;
 
-void *thread(void *attr) {
+void* thread(void* attr) {
     threadAttr myAttr = *(threadAttr*)attr;
     string myname = myAttr.name;
     int eatNum = myAttr.eatNum;
@@ -36,20 +36,20 @@ void *thread(void *attr) {
             break;
         }
         food -= eatNum;
-        cout << myname << " Eat " << eatNum << " food." << endl << "Now left " << food << " food" << endl;  
+        cout << myname << " Eat " << eatNum << " food." << endl << "Now left " << food << " food" << endl;
         pthread_mutex_unlock(&mutex);
     }
     cout << "Not enough food, " << myname << " dies" << endl;
-    return((void*)0);
+    return ((void*)0);
 }
 
-int main(int argc, char *argv[]) {
-    void *tret1, *tret2;
+int main(int argc, char* argv[]) {
+    void* tret1, *tret2;
     // Due to threads running concurrently, can't assign their return to the same vars
     // will Occur some erorrs
     int errCode1, errCode2;
     int ret1, ret2;
-    pthread_t h1,h2;
+    pthread_t h1, h2;
     threadAttr ta1;
     ta1.name = "thread1";
     ta1.eatNum = 6;

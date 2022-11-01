@@ -7,7 +7,7 @@
 #include <jemalloc/jemalloc.h>
 #endif
 
-void **pool = NULL;
+void** pool = NULL;
 int pool_top = -1;
 
 void xtfs_exit(int ret) {
@@ -18,15 +18,15 @@ void xtfs_exit(int ret) {
     exit(ret);
 }
 
-void *xtfs_malloc(size_t size) {
-    #ifdef DEBUG
-    assert( pool );
-    #endif
+void* xtfs_malloc(size_t size) {
+#ifdef DEBUG
+    assert(pool);
+#endif
     if (pool == NULL) {
         printf("XTFS_MANAGE NOT INIT!\n");
         xtfs_exit(EXIT_FAILURE);
     }
-    void *t = malloc(size);
+    void* t = malloc(size);
     pool[++pool_top] = t;
     return t;
 }

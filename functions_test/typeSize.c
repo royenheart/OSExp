@@ -2,14 +2,14 @@
 #include <stdlib.h>
 
 int main(int argc, char* argv) {
-    #ifdef _WIN32
+#ifdef _WIN32
     const char sys[] = "Windows system";
-    #elif defined(__linux__)
+#elif defined(__linux__)
     const char sys[] = "Linux system";
-    #else
+#else
     const char sys[] = "Other system";
-    #endif
-    
+#endif
+
     printf("%s: char - %d\n", sys, sizeof(char));
     printf("%s: short - %d\n", sys, sizeof(short));
     printf("%s: int - %d\n", sys, sizeof(int));

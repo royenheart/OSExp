@@ -1,0 +1,1 @@
+Astyle.exe --options=google.ini -R *.cpp *.c *.h

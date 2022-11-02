@@ -20,7 +20,9 @@
 // 读取的inode表
 struct inode inode_table[NR_INODE];
 // 读取的数据块位图
-char block_map[BLOCK_SIZE];
+BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
+// 数据块位图lowbit表
+char lowbit[BLOCK_MAP_TABLE_SIZE];
 // 文件系统文件名
 char* fs_name = NULL;
 // 文件系统文件索引
@@ -34,25 +36,22 @@ FILE* fp_xtfs = NULL;
 short get_block() {
     short blocknr;
 
-    // 遍历数据块位图
-    for (int i = 0; i < BLOCK_SIZE; i++) {
-        // 表示当前块已经占满
-        if (block_map[i] == 255) {
-            continue;
-        }
-        // 遍历当前数据块位图的8个比特看是否有空余的数据块（512字节）
-        for (int j = 0; j < 8; j++) {
-            // 是否未被占用
-            if ((block_map[i] & (1 << j)) == 0) {
-                // 使用空闲的数据块，并转换其标识位
-                block_map[i] |= 1 << j;
-                blocknr = i * 8 + j;
-                return blocknr;
-            }
-        }
-    }
-    printf("block_map is empty.\n");
-    xtfs_exit(EXIT_FAILURE);
+	// 遍历数据块位图
+	for (int i = 0; i < BLOCK_SIZE; i++)
+	{
+		// 当前块是否占满
+		if (block_map[i] != 255) {
+			// 遍历当前数据块位图的8个比特看是否有空余的数据块（512字节），使用lowbit方法
+			int x = block_map[i];
+			x = ~x;
+			x = x & (-x);
+			block_map[i] |= x;
+			blocknr = (i << 3) + lowbit[x];
+			return blocknr;
+		}
+	}
+	printf("block_map is empty.\n");
+	xtfs_exit(EXIT_FAILURE);
 }
 
 /**
@@ -186,6 +185,12 @@ int main(int argc, char* argv[]) {
     short index_table[BLOCK_SIZE / 2];
     char* filename;
     char type;
+	int i;
+
+	// 初始化lowbit表
+	for (i = 0; i < 8; i++) {
+		lowbit[1 << i] = i;
+	}
 
     // 获取待拷贝文件名和文件类型
     filename = argv[1];

@@ -20,7 +20,7 @@ int main(int argc, char* argv) {
     }
     if (child == 0) {
         printf("Now it is in child process.\n");
-        if (execl("test", "test", NULL) == -1) {
+        if (execl("example4", "example4", NULL) == -1) {
             perror("Error in child process");
         }
         global = local + 2;
@@ -36,7 +36,7 @@ int main(int argc, char* argv) {
             }
             if (child == 0) {
                 printf("Now it is in child process.\n");
-                if (execl("test", "test", NULL) == -1) {
+                if (execl("example4", "example4", NULL) == -1) {
                     perror("Error in child process.\n");
                 }
                 global = local + 2;

@@ -14,7 +14,7 @@ int main(int argc, char* argv) {
     pid_t CurrentProcessID, ParentProcessID;
     CurrentProcessID = getpid();
     ParentProcessID = getppid();
-    printf("Now it is in the program TEST.\n");
+    printf("Now it is in the program EXAMPLE4.\n");
     for (i = 0; i < 10; i++) {
         sleep(2);
         printf("Parent: %d, Current: %d, Number: %d\n", ParentProcessID, CurrentProcessID, i);

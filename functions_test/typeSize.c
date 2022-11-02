@@ -10,11 +10,11 @@ int main(int argc, char* argv) {
     const char sys[] = "Other system";
 #endif
 
-    printf("%s: char - %d\n", sys, sizeof(char));
-    printf("%s: short - %d\n", sys, sizeof(short));
-    printf("%s: int - %d\n", sys, sizeof(int));
-    printf("%s: long - %d\n", sys, sizeof(long));
-    printf("%s: long int - %d\n", sys, sizeof(long int));
-    printf("%s: float - %d\n", sys, sizeof(float));
-    printf("%s: double - %d\n", sys, sizeof(double));
+    printf("%s: char - %ld\n", sys, sizeof(char));
+    printf("%s: short - %ld\n", sys, sizeof(short));
+    printf("%s: int - %ld\n", sys, sizeof(int));
+    printf("%s: long - %ld\n", sys, sizeof(long));
+    printf("%s: long int - %ld\n", sys, sizeof(long int));
+    printf("%s: float - %ld\n", sys, sizeof(float));
+    printf("%s: double - %ld\n", sys, sizeof(double));
 }

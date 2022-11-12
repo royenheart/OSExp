@@ -12,7 +12,7 @@ int pool_top = -1;
 
 void xtfs_exit(int ret) {
     int i;
-    for (i = 0; i < MAX_POOL_LENGTH; i++) {
+    for (i = 0; i < pool_top; i++) {
         free(pool[i]);
     }
     exit(ret);

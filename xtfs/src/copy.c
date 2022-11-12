@@ -1,6 +1,6 @@
 /**
  * @file copy.c
- * @author 
+ * @author RoyenHeart, Ruoxuan Wang, MDND, bow
  * @brief 基础文件系统文件拷贝
  * @version 0.1
  * @date 2022-10-25

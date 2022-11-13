@@ -1,3 +1,14 @@
+/**
+ * @file xtfs_manage.c
+ * @author 
+ * @brief 提供统一的内存管理、退出机制、错误信息管理机制（实现）
+ * @version 0.1
+ * @date 2022-11-13
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>

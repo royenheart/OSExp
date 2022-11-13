@@ -1,3 +1,14 @@
+/**
+ * @file xtfs_struct.h
+ * @author xtfs文件系统相关结构
+ * @brief 
+ * @version 0.1
+ * @date 2022-11-13
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #pragma once
 
 #include "xtfs_limits.h"

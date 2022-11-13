@@ -1,3 +1,14 @@
+/**
+ * @file io.h
+ * @author 
+ * @brief 基础文件读写模块（声明）
+ * @version 0.1
+ * @date 2022-11-13
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #pragma once
 
 #include <stdio.h>

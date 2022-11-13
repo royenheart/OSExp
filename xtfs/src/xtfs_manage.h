@@ -1,7 +1,7 @@
 /**
  * @file xtfs_manage.h
  * @author 
- * @brief 提供统一的内存管理、退出机制、错误信息管理机制
+ * @brief 提供统一的内存管理、退出机制、错误信息管理机制（声明）
  * @version 0.1
  * @date 2022-10-25
  * 

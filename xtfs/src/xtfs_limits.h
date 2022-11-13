@@ -1,3 +1,14 @@
+/**
+ * @file xtfs_limits.h
+ * @author 
+ * @brief xtfs文件系统限制
+ * @version 0.1
+ * @date 2022-11-13
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #pragma once
 
 #include <stdlib.h>

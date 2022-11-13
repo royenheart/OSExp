@@ -1,3 +1,14 @@
+/**
+ * @file io.c
+ * @author 
+ * @brief 基础文件读写模块（实现）
+ * @version 0.1
+ * @date 2022-11-13
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include "io.h"
 
 inline size_t write_file(FILE *fp, long int offset, char *buffer, size_t size) {

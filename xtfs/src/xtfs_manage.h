@@ -11,8 +11,11 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #define MAX_POOL_LENGTH 100
 #define INIT_XTFS_MANAGE extern void** pool; pool = (void**)malloc(MAX_POOL_LENGTH * sizeof(void*));
 
 void xtfs_exit(int ret);
+void *xtfs_free_pool(void);
 void *xtfs_malloc(size_t size);

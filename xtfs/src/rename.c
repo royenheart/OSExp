@@ -15,6 +15,7 @@
 #include "xtfs_limits.h"
 #include "xtfs_struct.h"
 #include "xtfs_manage.h"
+#include "xtfs_check.h"
 #include "io.h"
 
 // inode表
@@ -29,18 +30,9 @@ int main(int argc, char* argv[]) {
     char fileRename[MAX_FILE_NAME_LENGTH] = {0};
     int i;
 
-    if (strlen(argv[1]) > MAX_FILE_NAME_LENGTH) {
-        printf("File name too long!: %s\n", argv[1]);
-        xtfs_exit(EXIT_FAILURE);
-    }
-    if (strlen(argv[2]) > MAX_FILE_NAME_LENGTH) {
-        printf("New file name too long!: %s\n", argv[2]);
-        xtfs_exit(EXIT_FAILURE);
-    }
-    if (strlen(argv[3]) > MAX_FS_NAME_LENGTH) {
-        printf("XTFS name too long!: %s\n", argv[3]);
-        xtfs_exit(EXIT_FAILURE);
-    }
+    check_file_name(argv[1]);
+    check_file_name(argv[2]);
+    check_fs_name(argv[3]);
 
     strcpy(filename, argv[1]);
     strcpy(fileRename, argv[2]);

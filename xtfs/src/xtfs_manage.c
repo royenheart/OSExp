@@ -22,11 +22,15 @@ void **pool = NULL;
 int pool_top = -1;
 
 void xtfs_exit(int ret) {
+    xtfs_free_pool();
+    exit(ret);
+}
+
+void *xtfs_free_pool(void) {
     int i;
     for (i = 0; i < pool_top; i++) {
         free(pool[i]);
     }
-    exit(ret);
 }
 
 void *xtfs_malloc(size_t size) {

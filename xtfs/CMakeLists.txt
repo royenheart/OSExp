@@ -12,8 +12,12 @@ option(BUILD_DOC "Build documentation" ON)
 
 include_directories(src)
 
-add_library(xtfs_manage SHARED src/xtfs_manage.c)
-add_library(io SHARED src/io.c)
+add_library(xtfs_basic SHARED 
+    src/xtfs_manage.c 
+    src/xtfs_struct.c
+    src/xtfs_check.c
+    src/io.c
+)
 
 # Build Doxygen
 if (BUILD_DOC)
@@ -25,16 +29,14 @@ else (BUILD_DOC)
 endif (BUILD_DOC)
 
 # Jemalloc
-
 if (FEATURE_JEMALLOC)
     message(STATUS "BUILD WITH JEMALLOC")
-    target_link_libraries(xtfs_manage jemalloc)
+    target_link_libraries(xtfs_basic jemalloc)
 else (FEATURE_JEMALLOC)
     message(STATUS "NOT BUILD WITH JEMALLOC")
 endif ()
 
 # GTEST
-
 if (TEST_BUILD)
     find_package(GTest)
     if (GTest_FOUND)
@@ -43,7 +45,7 @@ if (TEST_BUILD)
 
         add_executable(test_io src/gtests/test_io.cpp)
 
-        target_link_libraries(test_io PUBLIC io ${GTEST_BOTH_LIBRARIES} pthread)
+        target_link_libraries(test_io PUBLIC xtfs_basic ${GTEST_BOTH_LIBRARIES} pthread)
 
         enable_testing()
         add_test(NAME IO_BASIC_TEST COMMAND test_io)
@@ -54,16 +56,18 @@ else (TEST_BUILD)
     message(STATUS "NOT BUILD GTEST")
 endif (TEST_BUILD)
 
+link_libraries(xtfs_basic)
+
 add_executable(format src/format.c)
 add_executable(copy src/copy.c)
 add_executable(read src/read.c)
 add_executable(rename src/rename.c)
+add_executable(delete src/delete.c)
+add_executable(rewrite src/rewrite.c)
 
-target_link_libraries(copy PUBLIC io xtfs_manage)
-target_link_libraries(read PUBLIC io xtfs_manage)
-target_link_libraries(rename PUBLIC io xtfs_manage)
-
-file(COPY xtfs.img DESTINATION test_file)
-file(COPY hello.c DESTINATION test_file)
-file(COPY gtest.img DESTINATION gtests)
-file(COPY testbench.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR} FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
+file(COPY tests/xtfs.img DESTINATION tests)
+file(COPY tests/hello.c DESTINATION tests)
+file(COPY tests/hello.cpp DESTINATION tests)
+file(COPY tests/hello.md DESTINATION tests)
+file(COPY tests/gtest.img DESTINATION gtests)
+file(COPY tests/testbench.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR} FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)

@@ -4,9 +4,9 @@
  * @brief 格式化镜像、分区文件系统
  * @version 0.1
  * @date 2022-10-25
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include <stdio.h>
@@ -17,17 +17,16 @@
 
 /**
  * @brief 格式化
- * 
+ *
  * @param argc 参数个数
  * @param argv 参数内容
  * @return int 0 成功格式化
  */
-int main(int argc, char* argv[])
-{
-    FILE *fp = NULL;
-    char *fs_name = NULL;
+int main(int argc, char* argv[]) {
+    FILE* fp = NULL;
+    char* fs_name = NULL;
     char blank[BLOCK_SIZE] = {0};
-    
+
     check_fs_name(argv[1]);
 
     fs_name = argv[1];
@@ -39,6 +38,6 @@ int main(int argc, char* argv[])
     fputc(3, fp);
     fclose(fp);
 
-    return(EXIT_SUCCESS);
+    return (EXIT_SUCCESS);
 }
 

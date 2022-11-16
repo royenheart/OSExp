@@ -1,12 +1,12 @@
 /**
  * @file xtfs_limits.h
- * @author 
+ * @author
  * @brief xtfs文件系统限制
  * @version 0.1
  * @date 2022-11-13
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #pragma once
@@ -23,6 +23,12 @@
 #define BLOCK_MAP_STRUC unsigned char
 // 数据块位图lowbit表大小（用于判断j）
 #define BLOCK_MAP_TABLE_SIZE 1024
+// 数据块位图lowbit表类型
+#define BLOCK_MAP_TABLE_STRUC unsigned char
+// 数据块索引表类型
+#define INDEX_TABLE_STRUC short
+// 数据块索引表大小
+#define INDEX_TABLE_SIZE BLOCK_SIZE / sizeof(INDEX_TABLE_STRUC)
 // 最大文件名长度
 #define MAX_FILE_NAME_LENGTH 20
 // 最大文件系统文件名长度

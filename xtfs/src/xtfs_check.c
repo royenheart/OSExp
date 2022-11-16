@@ -1,12 +1,12 @@
 /**
  * @file xtfs_check.c
- * @author 
+ * @author
  * @brief 文件系统相关检查（实现）
  * @version 0.1
  * @date 2022-11-14
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include "string.h"
@@ -27,4 +27,3 @@ void check_fs_name(const char* name) {
         xtfs_exit(EXIT_FAILURE);
     }
 }
- 

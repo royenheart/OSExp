@@ -21,106 +21,25 @@
 #include <assert.h>
 #endif
 
-int find_inode_index_table(char *filename, char type);
-void set_block_map(int flag, short blocknr);
-void read_first_two_blocks();
-void write_first_two_blocks();
-
 // 读取的inode表
 struct inode inode_table[NR_INODE];
 // 读取的数据块位图
-unsigned char block_map[BLOCK_SIZE];
+BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
+// 数据块位图lowbit表
+BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
 // 文件系统文件
-char *fs_name = NULL;
+char* fs_name = NULL;
 // 文件系统文件索引
-FILE *fp_xtfs = NULL;
+FILE* fp_xtfs = NULL;
 
-/**
- * @brief 读取inode表和数据块视图
- * 
- */
-void read_first_two_blocks()
-{
-	read_file(fp_xtfs, 0, (char *)inode_table, BLOCK_SIZE);
-	read_file(fp_xtfs, BLOCK_SIZE, block_map, BLOCK_SIZE);
-}
-
-void set_block_map(int flag, short blocknr)
-{
-    int j = blocknr % 8;
-    int i = (blocknr-j) / 8;
-    if(flag == 1)
-    {
-        block_map[i] |= 1<<j;
-    }
-    else
-    {
-        block_map[i] &= ~(1<<j);
-    }
-}
-
-void write_first_two_blocks()
-{
-	write_file(fp_xtfs, 0, (char *)inode_table, BLOCK_SIZE);
-	write_file(fp_xtfs, BLOCK_SIZE, block_map, BLOCK_SIZE);
-}
-
-short get_block()
-{
-    short blocknr;
-    int i, j;
-
-    for (i = 0; i < BLOCK_SIZE; i++)
-    {
-        if (block_map[i] == 255)
-            continue;
-        for (j = 0; j < 8; j++)
-        {
-            if ((block_map[i] & (1 << j)) != 0)
-                continue;
-            block_map[i] |= 1 << j;
-            blocknr = i * 8 + j;
-            return blocknr;
-        }
-    }
-    printf("block_map is empty.\n");
-    exit(EXIT_FAILURE);
-}
-
-/**
- * @brief 根据需要的块数获取所有可行的数据块编号
- * 
- * @param need 需要的数据块数
- * @return short* 数据块编号数组
- */
-short* get_all_block(int need) {
-	short *blocknr_s = (short*)xtfs_malloc(BLOCK_SIZE * sizeof(short));
-	memset(blocknr_s, 0, BLOCK_SIZE * sizeof(short));
-	int i;
-	for (i = 0; i < need; i++) {
-		blocknr_s[i] = get_block();
-	}
-	return blocknr_s;
-}
-
-short write_index_table(char *index_table)
-{
-	short index_table_blocknr;
-
-	index_table_blocknr = get_block();
-	write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char *)index_table, BLOCK_SIZE);
-	return index_table_blocknr;
-}
-
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
     INIT_XTFS_MANAGE
-    
-    FILE *fp = NULL;
+
+    FILE* fp = NULL;
     int filesize;
     char filename1[MAX_FILE_NAME_LENGTH] = {0};
     char filename2[MAX_FILE_NAME_LENGTH] = {0};
-    short index_table[BLOCK_SIZE / 2] = {0};
+    INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
     // blocknr：inode表位置，index_table_blocknr：数据块索引表位置
     int i, blocknr, index_table_blocknr;
     size_t size;
@@ -130,6 +49,11 @@ int main(int argc, char *argv[])
     check_file_name(argv[1]);
     check_file_name(argv[2]);
     check_fs_name(argv[3]);
+
+    // 初始化lowbit表
+    for (i = 0; i < 8; i++) {
+        lowbit[1 << i] = i;
+    }
 
     // 取两个文件名称
     strcpy(filename1, argv[1]);
@@ -146,45 +70,36 @@ int main(int argc, char *argv[])
     fp_xtfs = fopen(fs_name, "r+");
 
     // 读取前两个数据块的数据
-    read_first_two_blocks();
+    read_first_two_blocks(fp_xtfs, inode_table, block_map);
 
-    for (i = 0; i < NR_INODE; i++) {
-        // 未加入目录，目前只以文件名判断且不是空文件（文件类型）
-        // 覆写必须要原文件存在
-        if (strcmp(inode_table[i].filename, filename1) == 0 && inode_table[i].type != NO_FILE) {
-            blocknr = i;
-            break;
-        }
-    }
+    blocknr = find_inode_index_table(filename1, inode_table);
 
-    if (i == NR_INODE) {
+    if (blocknr == NOT_FOUND) {
         printf("No such file: %s\n", filename1);
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
 
     // 取出index_table存的地址
-    index_table_blocknr = inode_table[blocknr].index_table_blocknr; 
+    index_table_blocknr = inode_table[blocknr].index_table_blocknr;
     // 取出index_table
-    // read_index_block(index_table, index_table_blocknr);   
+    // read_index_block(index_table, index_table_blocknr);
     read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
 
     // 取已经存的数据块
-    exist = (inode_table[blocknr].size + BLOCK_SIZE - 1) / BLOCK_SIZE; 
+    exist = (inode_table[blocknr].size + BLOCK_SIZE - 1) / BLOCK_SIZE;
     // 计算需要的数据块
-    need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;                  
+    need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
     // 分配新空间
-    short *blocknr_s = NULL;
-    blocknr_s = get_all_block(need - exist);
+    short* blocknr_s = NULL;
+    blocknr_s = get_all_block(need - exist, block_map, lowbit);
 
     // 能写尽写，将数据写入数据块
-    for (i = 0; i < exist; i++) 
-    {
+    for (i = 0; i < exist; i++) {
         memset(buffer, 0, BLOCK_SIZE);
         size = fread(buffer, 1, BLOCK_SIZE, fp);
-        if (size == 0)
-        {
+        if (size == 0) {
             break;
         }
         // 无论怎么样，都将一整块数据输入，防止最后一块之前的文件内容干扰。
@@ -197,9 +112,8 @@ int main(int argc, char *argv[])
         int next_blocknr = blocknr_s[i];
         // 读文件内容
         memset(buffer, 0, BLOCK_SIZE);
-        size = fread(buffer, 1, BLOCK_SIZE, fp); 
-        if (size == 0)
-        {
+        size = fread(buffer, 1, BLOCK_SIZE, fp);
+        if (size == 0) {
             break;
         }
         // 将文件内容写进下一个块
@@ -207,12 +121,12 @@ int main(int argc, char *argv[])
         // 修改index_table
         index_table[i + exist] = next_blocknr;
         // 修改数据块位图
-        set_block_map(1, next_blocknr);
+        set_block_map(1, next_blocknr, block_map);
     }
     // 释放不需要的文件位置
     for (i = need; i < exist; i++) {
         // 修改数据块位图
-        set_block_map(0, index_table[i]); 
+        set_block_map(0, index_table[i], block_map);
         // 修改数据块索引，覆写文件仍然存在
         index_table[i] = 0;
     }
@@ -220,14 +134,14 @@ int main(int argc, char *argv[])
     // 将更新后的数据块索引表 index_table 写入文件系统
     // 修改inode记录的文件大小
     inode_table[blocknr].size = filesize;
-    // 修改inode记录的文件名称 
+    // 修改inode记录的文件名称
     strcpy(inode_table[blocknr].filename, filename2);
-    write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char *)index_table, BLOCK_SIZE); 
-    write_first_two_blocks();
+    write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+    write_first_two_blocks(fp_xtfs, inode_table, block_map);
 
     xtfs_free_pool();
     fclose(fp);
     fclose(fp_xtfs);
-    return(EXIT_SUCCESS);
+    return (EXIT_SUCCESS);
 }
 

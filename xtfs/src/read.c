@@ -4,9 +4,9 @@
  * @brief 基础文件系统数据读入
  * @version 0.1
  * @date 2022-10-25
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include <stdio.h>
@@ -25,14 +25,14 @@
 // inode表
 struct inode inode_table[NR_INODE];
 // 文件系统文件名
-char *fs_name = NULL;
+char* fs_name = NULL;
 // 文件系统文件索引
-FILE *fp_xtfs = NULL;
+FILE* fp_xtfs = NULL;
 
 int main(int argc, char* argv[]) {
     char filename[MAX_FILE_NAME_LENGTH] = {0};
     // 数据块索引表
-    short index_table[BLOCK_SIZE / 2] = {0};
+    INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
     int i;
 
     check_file_name(argv[1]);
@@ -41,10 +41,10 @@ int main(int argc, char* argv[]) {
     strcpy(filename, argv[1]);
     fs_name = argv[2];
     fp_xtfs = fopen(fs_name, "r");
-    #ifdef DEBUG
-    assert( fp_xtfs != NULL );
-    #endif
-    read_file(fp_xtfs, 0, (char *)inode_table, BLOCK_SIZE);
+#ifdef DEBUG
+    assert(fp_xtfs != NULL);
+#endif
+    read_file(fp_xtfs, 0, (char*)inode_table, BLOCK_SIZE);
     for (i = 0; i < NR_INODE; i++) {
         // 未加入目录，目前只以文件名判断且不是空文件（文件类型）
         if (strcmp(inode_table[i].filename, filename) == 0 && inode_table[i].type != NO_FILE) {
@@ -63,16 +63,15 @@ int main(int argc, char* argv[]) {
     // 根据数据块索引表读入文件数据
     for (i = 0; i < BLOCK_SIZE / 2; i++) {
         // 防止缓存区溢出
-        char data[BLOCK_SIZE + 1];
+        char data[BLOCK_SIZE + 1] = {0};
         int block_pos = index_table[i];
         if (block_pos == 0) {
             break;
         }
-        memset(data, 0, BLOCK_SIZE + 1);
         read_file(fp_xtfs, block_pos * BLOCK_SIZE, data, BLOCK_SIZE);
         printf("%s", data);
     }
 
     fclose(fp_xtfs);
-    return(EXIT_SUCCESS);
+    return (EXIT_SUCCESS);
 }

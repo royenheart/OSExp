@@ -18,6 +18,17 @@ make && ./format tests/xtfs.img \
      && ./read tests/hello.c tests/xtfs.img \
      && ./rewrite tests/hello.c tests/hello.md tests/xtfs.img \
      && ./read tests/hello.md tests/xtfs.img \
+     && ./delete tests/hello.md tests/xtfs.img \
+     && ./cipher tests/hello.md 2 tests/xtfs.img 123456 \
+     && ./decrypt tests/hello.md tests/xtfs.img 123456\
+     && ./cipher tests/hello.cpp 2 tests/xtfs.img 123456 \
+     && ./decrypt tests/hello.cpp tests/xtfs.img 123456 \
+     && ./delete tests/hello.md tests/xtfs.img \
+     && ./delete tests/hello.cpp tests/xtfs.img \
+     && ./HuffmanZip tests/hello.md 2 tests/xtfs.img \
+     && ./HuffmanUnzip tests/hello.md tests/xtfs.img \
+     && ./HuffmanZip tests/hello.cpp 2 tests/xtfs.img \
+     && ./HuffmanUnzip tests/hello.cpp tests/xtfs.img \
 
 if [[ $? == 0 ]]; then
      echo "TEST BUILD PASSED!"

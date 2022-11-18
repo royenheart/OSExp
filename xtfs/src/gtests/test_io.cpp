@@ -6,10 +6,10 @@ extern "C" {
 #include "../io.h"
 }
 
-class IO_BASIC:public testing::Test {
-    protected:
-    FILE *file = NULL;
-    char *data = NULL;
+class IO_BASIC: public testing::Test {
+  protected:
+    FILE* file = NULL;
+    char* data = NULL;
     const size_t SIZE = 4096;
     virtual void SetUp() {
         file = fopen("gtests/gtest.img", "rw+");

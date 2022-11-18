@@ -4,9 +4,16 @@
   - [编译说明](#编译说明)
     - [特性](#特性)
   - [实验流程](#实验流程)
+    - [重要规范](#重要规范)
     - [创建硬盘镜像文件](#创建硬盘镜像文件)
     - [copy](#copy)
     - [read](#read)
+    - [delete](#delete)
+    - [format](#format)
+    - [rename](#rename)
+    - [rewrite](#rewrite)
+    - [cipher & decrypt](#cipher--decrypt)
+    - [HuffmanZip & HuffmanUnzip](#huffmanzip--huffmanunzip)
   - [hexdump命令使用](#hexdump命令使用)
 
 ## 编译说明
@@ -20,7 +27,27 @@
     apt install libjemalloc-dev
     ```
 
+2. `Google Test`
+
+    ```shell
+    # Ubuntu / Debian
+    apt install libgtest-dev
+    ```
+
+3. `Doxygen`
+
+    ```shell
+    # Ubuntu / Debian
+    apt install doxygen graphviz
+    ```
+
+
 ## 实验流程
+
+### 重要规范
+
+1. 应在所有文件操作准备完全后，才能将数据写入文件系统
+2. 文件类型指定必须在合法的文件类型范围内，不合法的文件类型将不被允许写入
 
 ### 创建硬盘镜像文件
 
@@ -45,6 +72,18 @@ hexdump -C xtfs.img
 2. 根据inode表读取对应文件的inode项
 3. 根据inode项读取文件的数据块索引表
 4. 根据数据块索引表依次读取文件的数据，并进行输出显示
+
+### delete
+
+### format
+
+### rename
+
+### rewrite
+
+### cipher & decrypt
+
+### HuffmanZip & HuffmanUnzip
 
 ## hexdump命令使用
 

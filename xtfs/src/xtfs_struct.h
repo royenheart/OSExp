@@ -13,7 +13,7 @@
 
 #include "xtfs_limits.h"
 
-// 最多支持32种文件类型，文件类型以int数据格式计算
+// 最多支持31种文件类型，文件类型以int数据格式计算，0保留作无文件（NO_FILE）
 
 #define NO_FILE 0
 #define NOT_FOUND -1
@@ -47,12 +47,21 @@
 
 
 /**
- * @brief Define the file type according to the params given
+ * @brief 根据输入的类型判断文件类型，并根据错误、非法输入进行相应的处理
  *
- * @param i param indicate the file type
- * @return unsigned char file_type
+ * @param i 需要判定的文件类型
+ * @return unsigned char 判定合法的文件类型
  */
 unsigned char get_file_type(int i);
+
+/**
+ * @brief 根据输入的文件类型判断是否使用了某种特定格式技术
+ * 
+ * @param type 需要判断的文件类型
+ * @param spec 需要判断的特定格式
+ * @return char 0表示该文件类型使用了指定的特定格式；其他数表示没有使用
+ */
+char is_spec_format(int type, int spec);
 
 struct inode {
     int size;

@@ -34,3 +34,11 @@ size_t write_file(FILE* fp, long int offset, char* buffer, size_t size);
  * @return size_t 0:读操作正常;非0:读操作异常
  */
 size_t read_file(FILE* fp, long int offset, char* buffer, size_t size);
+
+/**
+ * @brief 读取文件大小
+ * 
+ * @param fp 打开的文件索引
+ * @return size_t 文件大小
+ */
+size_t read_file_size(FILE *fp);

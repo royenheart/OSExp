@@ -30,3 +30,11 @@ unsigned char get_file_type(int i) {
     }
     return i;
 }
+
+char is_spec_format(int type, int spec) {
+    if ((type | spec) != type) {
+        return 1; 
+    } else {
+        return 0;
+    }
+}

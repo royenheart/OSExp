@@ -26,7 +26,6 @@ extern "C" {
 }
 
 #define CHARSET_SIZE 256
-#define NAME_LEN 9
 
 struct node {
     int lson, rson;
@@ -64,9 +63,7 @@ int read_blocks(char* filename) {
     char buffer[BLOCK_SIZE];
 
     fp = fopen(filename, "r");
-    fseek(fp, 0, SEEK_END);
-    filesize = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+    filesize = read_file_size(fp);
     need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
     for (int i = 0; i < need; i++) {
@@ -103,7 +100,7 @@ void dfs(int num) {
 inline void trans() {
     for (int i = 0; i < filesize; i++) {
         int x = (int)file[i];
-        for (int j = 0; j < encoder[x].length(); j++) { //fout<<j<<endl;
+        for (int j = 0; j < encoder[x].length(); j++) {
             file_trans += (encoder[x][j]);
         }
     }
@@ -111,7 +108,6 @@ inline void trans() {
 
 void HuffmanZip() {
     memset(appear, 0, sizeof(appear));
-    //filesize--;
     for (int i = 0; i < filesize; i++) {
         appear[file[i]]++;
     }
@@ -155,20 +151,21 @@ void HuffmanZip() {
     string num1 = "", num2 = "", num3 = "";
     filesize = file_trans.length();
     for (int i = 15; i >= 0; i--) {
-        if (num_char & (1 << i))
+        if (num_char & (1 << i)) {
             num1 += '1';
-        else
+        } else {
             num1 += '0';
-
-        if (tree_stack_size & (1 << i))
+        }
+        if (tree_stack_size & (1 << i)) {
             num2 += '1';
-        else
+        } else {
             num2 += '0';
-
-        if (filesize & (1 << i))
+        }
+        if (filesize & (1 << i)) {
             num3 += '1';
-        else
+        } else {
             num3 += '0';
+        }
     }
     for (int i = 0; i < vec_alpha.size(); i++) {
         for (int j = 0; j <= 7; j++) {
@@ -205,41 +202,34 @@ void HuffmanZip() {
     filesize = file.length();
 }
 
-int copy_blocks(short* index_table) {
-    int filesize;
-    int i, need;
-    int blocknr;
-    size_t size;
-    char buffer[BLOCK_SIZE];
+// int copy_blocks(short* index_table) {
+//     int filesize;
+//     int i, need;
+//     int blocknr;
+//     size_t size;
+//     char buffer[BLOCK_SIZE];
 
-    filesize = file.length();
+//     filesize = file.length();
 
-    memset((char*)index_table, 0, BLOCK_SIZE);
-    need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    int pos = 0;
-    for (i = 0; i < need; i++) {
-        blocknr = get_block(block_map, lowbit);
-        size = min(512, filesize - pos);
-        for (int j = pos; j < pos + size; j++) {
-            buffer[j - pos] = file[j];
-        }
-        pos += size;
-        write_file(fp_xtfs, blocknr * BLOCK_SIZE, buffer, BLOCK_SIZE);
-        index_table[i] = blocknr;
-    }
-    return filesize;
-}
+//     memset((char*)index_table, 0, BLOCK_SIZE);
+//     need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
+//     int pos = 0;
+//     for (i = 0; i < need; i++) {
+//         blocknr = get_block(block_map, lowbit);
+//         size = min(BLOCK_SIZE, filesize - pos);
+//         for (int j = pos; j < pos + size; j++) {
+//             buffer[j - pos] = file[j];
+//         }
+//         pos += size;
+//         write_file(fp_xtfs, blocknr * BLOCK_SIZE, buffer, BLOCK_SIZE);
+//         index_table[i] = blocknr;
+//     }
+//     return filesize;
+// }
 
 int main(int argc, char* argv[]) {
+    // INIT_XTFS_MANAGE
     int inode_nr;
-
-    for (int i = 0; i < 8; i++) {
-        lowbit[1 << i] = i;
-    }
-
-    check_file_name(argv[1]);
-    check_fs_name(argv[3]);
-
     FILE* fp = NULL;
     int filesize;
     int type;
@@ -247,16 +237,30 @@ int main(int argc, char* argv[]) {
     INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
     int i, blocknr, index_table_blocknr;
 
+    // 初始化 lowbit 表
+    for (int i = 0; i < 8; i++) {
+        lowbit[1 << i] = i;
+    }
+
+    check_file_name(argv[1]);
+    check_fs_name(argv[3]);
+
     filename = argv[1];
     type = get_file_type(atoi(argv[2]) | ZIP);
     fs_name = argv[3];
     fp_xtfs = fopen(fs_name, "r+");
 
     read_first_two_blocks(fp_xtfs, inode_table, block_map);
-    filesize = read_blocks(filename);
+
+    read_blocks(filename);
     HuffmanZip();
-    filesize = copy_blocks(index_table);
-    index_table_blocknr = write_index_table(fp_xtfs, block_map, lowbit, index_table);
+    filesize = file.length();
+    int pos = 0;
+    spec_huffman_zip_params_load(filesize, &pos, file.c_str());
+    index_table_blocknr = copy_blocks(filesize, type, block_map, lowbit, fp_xtfs);
+
+    // filesize = copy_blocks(index_table);
+    // index_table_blocknr = write_index_table(fp_xtfs, block_map, lowbit, index_table);
     inode_nr = get_empty_inode(inode_table, filename, type);
     inode_table[inode_nr].size = filesize;
     inode_table[inode_nr].index_table_blocknr = index_table_blocknr;

@@ -12,15 +12,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 #include "xtfs_manage.h"
 #include "xtfs_struct.h"
+#include "xtfs_limits.h"
 
 #ifdef FEATURE_JEMALLOC
 #include <jemalloc/jemalloc.h>
 #endif
 
-void** pool = NULL;
+// void** pool = NULL;
+// int pool_top = -1;
+// specs_copy *specs_params = NULL;
+
+void* pool[MAX_POOL_LENGTH];
 int pool_top = -1;
+specs_copy specs_params;
 
 void xtfs_exit(int ret) {
     xtfs_free_pool();
@@ -69,8 +76,12 @@ short get_block(BLOCK_MAP_STRUC* block_map, BLOCK_MAP_TABLE_STRUC* lowbit) {
 }
 
 short* get_all_block(int need, BLOCK_MAP_STRUC* block_map, BLOCK_MAP_TABLE_STRUC* lowbit) {
-    short* blocknr_s = (short*)xtfs_malloc(BLOCK_SIZE * sizeof(short));
-    memset(blocknr_s, 0, BLOCK_SIZE * sizeof(short));
+    // 必须返回 need + 1 空间，防止缓冲区溢出，但是申请的时候还是按照 need 数量来
+    if (need <= 0) {
+        return memset((INDEX_TABLE_STRUC*)xtfs_malloc(sizeof(INDEX_TABLE_STRUC)), 0, sizeof(INDEX_TABLE_STRUC));
+    }
+    INDEX_TABLE_STRUC* blocknr_s = (INDEX_TABLE_STRUC*)xtfs_malloc((need + 1) * sizeof(INDEX_TABLE_STRUC));
+    memset(blocknr_s, 0, (need + 1) * sizeof(INDEX_TABLE_STRUC));
     int i;
     for (i = 0; i < need; i++) {
         blocknr_s[i] = get_block(block_map, lowbit);
@@ -94,6 +105,122 @@ short write_index_table(FILE* fp_xtfs, BLOCK_MAP_STRUC* block_map, BLOCK_MAP_TAB
     index_table_blocknr = get_block(block_map, lowbit);
     write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
     return index_table_blocknr;
+}
+
+int select_spec_funcs(char *buffer, int file_type) {
+    int ret = 0;
+    if (is_spec_format(file_type, CIPHER) == 0) {
+        ret |= spec_cipher_copy(buffer);
+    } else if (is_spec_format(file_type, ZIP) == 0) {
+        ret |= spec_huffman_zip_copy(buffer);
+    } else {
+        ret |= normal_copy(buffer);
+    }
+    return ret;
+}
+
+short copy_blocks(int file_size, int file_type, BLOCK_MAP_STRUC* block_map, BLOCK_MAP_TABLE_STRUC* lowbit, FILE* fp_xtfs) {
+    int i, need, index_need;
+    // index_table 需要的数据块的位置
+    INDEX_TABLE_STRUC *index_blocknr_s = NULL;
+    // 数据内容需要的数据块的位置
+    INDEX_TABLE_STRUC *blocknr_s = NULL;
+    // 当前需要写入数据内容的数据块位置
+    INDEX_TABLE_STRUC blocknr;
+    // 当前需要写入 index_table 的数据块的位置
+    INDEX_TABLE_STRUC index_blocknr = 0;
+    // 当前index_table的位置
+    INDEX_TABLE_STRUC index_index_b = 0;
+    char buffer[BLOCK_SIZE];
+    INDEX_TABLE_STRUC index_block[INDEX_TABLE_SIZE];
+
+    // 计算存储数据内容需要的数据块和存储数据块索引表需要的数据块
+    need = (file_size + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    index_need = (need + INDEX_TABLE_DATA_SIZE - 1) / INDEX_TABLE_DATA_SIZE;
+
+    // 申请全部需要的空间，若空间不够将直接退出，不进行之后的保存
+    blocknr_s = get_all_block(need, block_map, lowbit);
+    index_blocknr_s = get_all_block(index_need, block_map, lowbit);
+
+    memset(index_block, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
+    for (i = 0; i < need; i++) {
+        blocknr = blocknr_s[i];
+        memset(buffer, 0, BLOCK_SIZE);
+        // 对需要输入文件系统的字节数组进行数据的读取和处理
+        select_spec_funcs(buffer, file_type);
+        // 将数据内容写入文件系统
+        write_file(fp_xtfs, blocknr * BLOCK_SIZE, buffer, BLOCK_SIZE);
+
+        index_block[index_index_b] = blocknr;
+        index_index_b++;
+        // 当前数据块索引表已满，写入文件系统并切换至下一个
+        if (index_index_b == INDEX_TABLE_DATA_SIZE) {
+            INDEX_TABLE_STRUC index = index_blocknr_s[index_blocknr];
+            INDEX_TABLE_STRUC index_next = index_blocknr_s[index_blocknr + 1]; 
+            index_block[index_index_b] = index_next;
+            write_file(fp_xtfs, index * BLOCK_SIZE, (char*)index_block, BLOCK_SIZE);
+            memset(index_block, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
+            index_index_b = 0;
+            index_blocknr++;
+        }
+    }
+
+    // 将剩余未被写入的 index_table 写入文件系统
+    if (index_blocknr_s[index_blocknr] != 0) {
+        INDEX_TABLE_STRUC index = index_blocknr_s[index_blocknr];
+        write_file(fp_xtfs, index * BLOCK_SIZE, (char*)index_block, BLOCK_SIZE);
+    }
+
+    // 全部写入完成，退出并返回第一个 index_table 所处的位置
+    return index_blocknr_s[0];
+}
+
+int normal_params_load(FILE *file) {
+    specs_params.normal_params.file = file;
+    return 0;
+}
+
+int normal_copy(char *buffer) {
+    FILE *fp = specs_params.normal_params.file;
+    fread(buffer, 1, BLOCK_SIZE, fp);
+    return 0;
+}
+
+int spec_cipher_params_load(unsigned int pwd, FILE* file) {
+    specs_params.cipher_params.pwd = pwd;
+    specs_params.cipher_params.file = file;
+    return 0;
+}
+
+int spec_cipher_copy(char *buffer) {
+    unsigned int pwd = specs_params.cipher_params.pwd;
+    int j;
+    FILE *fp = specs_params.cipher_params.file;
+    fread(buffer, 1, BLOCK_SIZE, fp);
+    for (j = 0; j < BLOCK_SIZE; j++) {
+        buffer[j] ^= pwd;
+    }
+    return 0;
+}
+
+int spec_huffman_zip_params_load(int file_size, int *pos, const char *file) {
+    specs_params.huffman_params.file_size = file_size;
+    specs_params.huffman_params.pos = pos;
+    specs_params.huffman_params.file = file;
+    return 0;
+}
+
+int spec_huffman_zip_copy(char *buffer) {
+    int j;
+    int file_size = specs_params.huffman_params.file_size;
+    int *pos = specs_params.huffman_params.pos;
+    const char* file = specs_params.huffman_params.file;
+    size_t size = (BLOCK_SIZE < file_size - *pos)?BLOCK_SIZE:file_size - *pos;
+    for (j = *pos; j < *pos + size; j++) {
+        buffer[j - *pos] = file[j];
+    }
+    *pos += size;
+    return 0;
 }
 
 void set_block_map(int flag, short blocknr, BLOCK_MAP_STRUC* block_map) {

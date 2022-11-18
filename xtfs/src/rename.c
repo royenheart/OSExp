@@ -37,25 +37,36 @@ int main(int argc, char* argv[]) {
     strcpy(filename, argv[1]);
     strcpy(fileRename, argv[2]);
     fs_name = argv[3];
+
     fp_xtfs = fopen(fs_name, "r+");
 
-    // 读取inode_table
+    // 读取 inode_table
     read_file(fp_xtfs, 0, (char*)inode_table, BLOCK_SIZE);
 
-    // 以文件名判断是否存在inode_table中
-    for (i = 0; i < NR_INODE; i++) {
-        if (strcmp(inode_table[i].filename, filename) == 0) {
-            strcpy(inode_table[i].filename, fileRename);
-            break;
-        }
-    }
+    // // 以文件名判断是否存在 inode_table 中
+    // for (i = 0; i < NR_INODE; i++) {
+    //     if (strcmp(inode_table[i].filename, filename) == 0) {
+    //         strcpy(inode_table[i].filename, fileRename);
+    //         break;
+    //     }
+    // }
 
-    // 未找到该文件
-    if (i == NR_INODE) {
+    // // 未找到该文件
+    // if (i == NR_INODE) {
+    //     printf("No such file: %s\n", filename);
+    //     fclose(fp_xtfs);
+    //     xtfs_exit(EXIT_FAILURE);
+    // }
+
+    i = find_inode_index_table(filename, inode_table);
+
+    if (i == NOT_FOUND) {
         printf("No such file: %s\n", filename);
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
+
+    strcpy(inode_table[i].filename, fileRename);
 
     // 将inode表写回0号数据块
     write_file(fp_xtfs, 0, (char*)inode_table, BLOCK_SIZE);

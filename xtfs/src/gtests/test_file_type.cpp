@@ -43,6 +43,18 @@ TEST_F(FILE_TYPE, SPEC_UNKNOWN) {
     ASSERT_EQ(get_file_type((UNKNOWN_FILE + 1) | CIPHER | ZIP), (UNKNOWN_FILE) | CIPHER | ZIP);
 }
 
+TEST_F(FILE_TYPE, IS_SPEC_TEST) {
+    ASSERT_EQ(is_spec_format(TEXT_FILE, CIPHER), 1);
+    ASSERT_EQ(is_spec_format(TEXT_FILE, CIPHER | ZIP), 1);
+    ASSERT_EQ(is_spec_format(TEXT_FILE | CIPHER, CIPHER), 0);
+    ASSERT_EQ(is_spec_format(TEXT_FILE | ZIP, ZIP), 0);
+    ASSERT_EQ(is_spec_format(TEXT_FILE | CIPHER, ZIP), 1);
+    ASSERT_EQ(is_spec_format(TEXT_FILE | ZIP, CIPHER), 1);
+    ASSERT_EQ(is_spec_format(TEXT_FILE | CIPHER | ZIP, CIPHER | ZIP), 0);
+    ASSERT_EQ(is_spec_format(TEXT_FILE | CIPHER | ZIP, CIPHER), 0);
+    ASSERT_EQ(is_spec_format(TEXT_FILE | CIPHER | ZIP, ZIP), 0);
+}
+
 int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

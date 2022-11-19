@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
         }
         // 检查 index_table ，得到应该写入的正确位置，若当前已满，需要先写入，再读出以存在的下一个文件系统进行读取
         INDEX_TABLE_STRUC index = i;
-        if ((index + 1) % (INDEX_TABLE_DATA_SIZE + 1) == 0) {
+        if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             INDEX_TABLE_STRUC temp = index_table[INDEX_TABLE_DATA_SIZE];
             write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
             index_table_blocknr = temp;
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
         write_file(fp_xtfs, next_blocknr * BLOCK_SIZE, buffer, BLOCK_SIZE);
         // 检查 index_table ，得到应该写入的正确位置，若当前已满，需要先写入，再读出不存在文件系统的下一个进行输入
         INDEX_TABLE_STRUC index = i + exist;
-        if ((index + 1) % (INDEX_TABLE_DATA_SIZE + 1) == 0) {
+        if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             INDEX_TABLE_STRUC temp = index_blocknr_s[++index_index_b];
             index_table[INDEX_TABLE_DATA_SIZE] = temp;
             write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     for (i = need; i < exist; i++) {
         // 检查 index_table ，得到应该释放的正确位置，若当前已满，需要将其当前index_table最后的标识位置为0，更改 block_map 并写进，再读出以存在文件系统中的下一个数据块索引表进行释放
         INDEX_TABLE_STRUC index = i;
-        if ((index + 1) % (INDEX_TABLE_DATA_SIZE + 1) == 0) {
+        if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             INDEX_TABLE_STRUC temp = index_table[INDEX_TABLE_DATA_SIZE];
             index_table[INDEX_TABLE_DATA_SIZE] = 0;
             write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);

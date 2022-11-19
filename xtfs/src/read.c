@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
         char data[BLOCK_SIZE + 1] = {0};
         // 检查 index_table ，得到应该读取的正确位置，否则转换到下一个
         INDEX_TABLE_STRUC index = i;
-        if ((index + 1) % (INDEX_TABLE_DATA_SIZE + 1) == 0) {
+        if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             index_table_blocknr = index_table[INDEX_TABLE_DATA_SIZE];
             memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
             read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);

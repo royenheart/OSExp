@@ -10,6 +10,7 @@ cmake ..
 helloC=$(mktemp tmp.XXXX)
 helloMD=$(mktemp tmp.XXXX)
 bigFile=$(mktemp tmp.XXXX)
+MbigFile=$(mktemp tmp.XXXX)
 
 make
 
@@ -37,7 +38,10 @@ function test_copy_read() {
      cmp ${helloMD} tests/hello.md && \
      ./copy tests/long_hello.md 2 tests/xtfs.img && \
      ./read tests/long_hello.md tests/xtfs.img > ${bigFile} && \
-     cmp ${bigFile} tests/long_hello.md
+     cmp ${bigFile} tests/long_hello.md && \
+     ./copy tests/bigFile.md 2 tests/xtfs.img && \
+     ./read tests/bigFile.md tests/xtfs.img > ${MbigFile} && \
+     cmp ${MbigFile} tests/bigFile.md
 
      if [[ $? == 0 ]]; then
           echo "COPY READ PASSED!"
@@ -62,6 +66,12 @@ function test_rewrite_read() {
      ./read tests/long_hello.md tests/xtfs.img > ${bigFile} && \
      cmp ${bigFile} tests/long_hello.md && \
      ./rewrite tests/long_hello.md tests/hello.md tests/xtfs.img && \
+     ./read tests/hello.md tests/xtfs.img > ${helloMD} && \
+     cmp ${helloMD} tests/hello.md && \
+     ./rewrite tests/hello.md tests/bigFile.md tests/xtfs.img && \
+     ./read tests/bigFile.md tests/xtfs.img > ${MbigFile} && \
+     cmp ${MbigFile} tests/bigFile.md && \
+     ./rewrite tests/bigFile.md tests/hello.md tests/xtfs.img && \
      ./read tests/hello.md tests/xtfs.img > ${helloMD} && \
      cmp ${helloMD} tests/hello.md
 
@@ -103,7 +113,10 @@ function test_cipher_read() {
      cmp ${helloMD} tests/hello.md && \
      ./cipher tests/long_hello.md 2 tests/xtfs.img 123456 && \
      ./decrypt tests/long_hello.md tests/xtfs.img 123456 > ${bigFile} && \
-     cmp ${bigFile} tests/long_hello.md 
+     cmp ${bigFile} tests/long_hello.md && \
+     ./cipher tests/bigFile.md 2 tests/xtfs.img 123456 && \
+     ./decrypt tests/bigFile.md tests/xtfs.img 123456 > ${MbigFile} && \
+     cmp ${MbigFile} tests/bigFile.md
 
      if [[ $? == 0 ]]; then
           echo "CIPHER READ PASSED!"
@@ -125,7 +138,10 @@ function test_zip_read() {
      cmp ${helloMD} tests/hello.md && \
      ./HuffmanZip tests/long_hello.md 2 tests/xtfs.img && \
      ./HuffmanUnzip tests/long_hello.md tests/xtfs.img > ${bigFile} && \
-     cmp ${bigFile} tests/long_hello.md 
+     cmp ${bigFile} tests/long_hello.md && \
+     ./HuffmanZip tests/bigFile.md 2 tests/xtfs.img && \
+     ./HuffmanUnzip tests/bigFile.md tests/xtfs.img > ${MbigFile} && \
+     cmp ${MbigFile} tests/bigFile.md 
 
      if [[ $? == 0 ]]; then
           echo "ZIP READ PASSED!"
@@ -152,3 +168,4 @@ fi
 rm ${helloC}
 rm ${helloMD}
 rm ${bigFile}
+rm ${MbigFile}

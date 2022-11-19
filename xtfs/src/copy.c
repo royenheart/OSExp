@@ -93,11 +93,9 @@ int main(int argc, char* argv[]) {
 
     fp_xtfs = fopen(fs_name, "r+");
 
-    // 读取0号和1号inode表和数据块位图数据到进程管理的内存（数组），便于修改
-    // 全局变量：inode_table 和 block_map
+    // 读取0号和1号inode表和数据块位图数据到进程管理的内存（数组），便于修改和之后的写入
     read_first_two_blocks(fp_xtfs, inode_table, block_map);
-    // 在inode表中申请一个空闲inode，存放文件的inode信息
-    // 若以存在相同文件，调用rewrite程序
+    // 在inode表中申请一个空闲inode，存放文件的inode信息，若存在相同文件，退出（之后版本可能添加调用覆写程序）
     i = get_empty_inode(inode_table, filename, type);
     // 将文件中内容拷贝到xtfs文件系统中
     FILE *fp = fopen(filename, "r");

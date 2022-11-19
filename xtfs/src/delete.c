@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     for (i = 0; i < exist; i++) {
         // 检查 index_table ，得到应该读取的正确位置，若当前 index_table 已经读满，则进入下一个。
         INDEX_TABLE_STRUC index = i;
-        if ((index + 1) % (INDEX_TABLE_DATA_SIZE + 1) == 0) {
+        if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             index_table_blocknr = index_table[INDEX_TABLE_DATA_SIZE];
             memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
             read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);

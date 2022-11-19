@@ -87,6 +87,8 @@ int main(int argc, char* argv[]) {
     }
 
     read_first_two_blocks(fp_xtfs, inode_table, block_map);
+    // 先申请一块空闲的 inode 表
+    inode_nr = get_empty_inode(inode_table, filename, type);
     fp = fopen(filename, "r");
     filesize = read_file_size(fp);
     spec_cipher_params_load(pwd, fp);
@@ -94,7 +96,6 @@ int main(int argc, char* argv[]) {
     fclose(fp);
     // filesize = copy_blocks(filename, index_table);
     // index_table_blocknr = write_index_table(fp_xtfs, block_map, lowbit, index_table);
-    inode_nr = get_empty_inode(inode_table, filename, type);
     inode_table[inode_nr].size = filesize;
     inode_table[inode_nr].index_table_blocknr = index_table_blocknr;
     write_first_two_blocks(fp_xtfs, inode_table, block_map);

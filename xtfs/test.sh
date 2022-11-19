@@ -122,7 +122,10 @@ function test_zip_read() {
      cmp ${helloC} tests/hello.c && \
      ./HuffmanZip tests/hello.md 2 tests/xtfs.img && \
      ./HuffmanUnzip tests/hello.md tests/xtfs.img > ${helloMD} && \
-     cmp ${helloMD} tests/hello.md 
+     cmp ${helloMD} tests/hello.md && \
+     ./HuffmanZip tests/long_hello.md 2 tests/xtfs.img && \
+     ./HuffmanUnzip tests/long_hello.md tests/xtfs.img > ${bigFile} && \
+     cmp ${bigFile} tests/long_hello.md 
 
      if [[ $? == 0 ]]; then
           echo "ZIP READ PASSED!"

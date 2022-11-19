@@ -150,7 +150,7 @@ void HuffmanZip() {
     trans();
     string num1 = "", num2 = "", num3 = "";
     filesize = file_trans.length();
-    for (int i = 15; i >= 0; i--) {
+    for (int i = 31; i >= 0; i--) {
         if (num_char & (1 << i)) {
             num1 += '1';
         } else {
@@ -251,6 +251,8 @@ int main(int argc, char* argv[]) {
     fp_xtfs = fopen(fs_name, "r+");
 
     read_first_two_blocks(fp_xtfs, inode_table, block_map);
+    // 先申请一块空闲的 inode 表
+    inode_nr = get_empty_inode(inode_table, filename, type);
 
     read_blocks(filename);
     HuffmanZip();
@@ -261,7 +263,6 @@ int main(int argc, char* argv[]) {
 
     // filesize = copy_blocks(index_table);
     // index_table_blocknr = write_index_table(fp_xtfs, block_map, lowbit, index_table);
-    inode_nr = get_empty_inode(inode_table, filename, type);
     inode_table[inode_nr].size = filesize;
     inode_table[inode_nr].index_table_blocknr = index_table_blocknr;
     write_first_two_blocks(fp_xtfs, inode_table, block_map);

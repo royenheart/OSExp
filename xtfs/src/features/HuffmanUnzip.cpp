@@ -31,9 +31,9 @@ string tree_stack;
 string file;
 int nownode, nodecnt = 0;
 string io_file;
-char buffer[1000005];
-int ls[1000005], rs[1000005], fa[1000005], val[1000005];
-int alpha[1000005];
+char buffer[10000005];
+int ls[10000005], rs[10000005], fa[10000005], val[10000005];
+int alpha[10000005];
 string alpha_list;
 int oz_num;
 string s = "";
@@ -168,19 +168,20 @@ int main(int argc, char* argv[]) {
         filesize -= BLOCK_SIZE;
     }
 
-    for (int i = 0; i <= 15; i++) {
-        if (io_file[15 - i] == '1') {
+    // 存文本长度，存了一个int
+    for (int i = 0; i <= 31; i++) {
+        if (io_file[31 - i] == '1') {
             num_char += (1 << i);
         }
-        if (io_file[31 - i] == '1') {
+        if (io_file[63 - i] == '1') {
             t_stack_size += (1 << i);
         }
-        if (io_file[47 - i] == '1') {
+        if (io_file[95 - i] == '1') {
             oz_num += (1 << i);
         }
     }
 
-    io_file.erase(0, 48);
+    io_file.erase(0, 96);
     tree_stack = " " + io_file.substr(0, t_stack_size);
     io_file.erase(0, t_stack_size);
     alpha_list = " " + io_file.substr(0, num_char * 8);

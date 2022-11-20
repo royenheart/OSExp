@@ -21,7 +21,7 @@ extern "C" {
 #include "../io.h"
 }
 
-char* fs_name = NULL;
+char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
 FILE* fp_xtfs = NULL;
 struct inode inode_table[NR_INODE];
 
@@ -98,7 +98,7 @@ void dfs(int x) {
 }
 
 int main(int argc, char* argv[]) {
-    char filename[MAX_FILE_NAME_LENGTH] = {0};
+    char filename[MAX_FILE_NAME_LENGTH + 1] = {0};
     INDEX_TABLE_STRUC index_table_blocknr;
     INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
     INDEX_TABLE_STRUC exist;
@@ -108,21 +108,12 @@ int main(int argc, char* argv[]) {
     check_fs_name(argv[2]);
 
     strncpy(filename, argv[1], MAX_FILE_NAME_LENGTH);
-    fs_name = argv[2];
+    strncpy(fs_name, argv[2], MAX_FS_NAME_LENGTH);
     fp_xtfs = fopen(fs_name, "r+");
 
     read_file(fp_xtfs, 0, (char*)inode_table, BLOCK_SIZE);
 
-    // for (i = 0; i < NR_INODE; i++) {
-    //     if (strcmp(inode_table[i].filename, filename) == 0 && inode_table[i].type != NO_FILE) {
-    //         long int blocknr = inode_table[i].index_table_blocknr;
-    //         filesize = inode_table[i].size;
-    //         read_file(fp_xtfs, blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
-    //         break;
-    //     }
-    // }
-
-    int inode_index_table = find_inode_index_table(filename, inode_table);
+    int inode_index_table = find_inode_table(filename, inode_table);
     if (inode_index_table == NOT_FOUND) {
         // 返回-1表示文件不存在
         printf("The file %s does not exist!\n", filename); 
@@ -131,7 +122,8 @@ int main(int argc, char* argv[]) {
     }
     // 得到第一个数据块索引表
     index_table_blocknr = inode_table[inode_index_table].index_table_blocknr;
-    read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+    // read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+    read_index_table(fp_xtfs, index_table, index_table_blocknr * BLOCK_SIZE);
     // 读取文件大小
     filesize = inode_table[inode_index_table].size;
     // 数据块内容已经存储的数据块
@@ -144,8 +136,9 @@ int main(int argc, char* argv[]) {
         INDEX_TABLE_STRUC index = i;
         if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             index_table_blocknr = index_table[INDEX_TABLE_DATA_SIZE];
-            memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
-            read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            // memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
+            // read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            read_index_table(fp_xtfs, index_table, index_table_blocknr * BLOCK_SIZE);
             index = 0;
         } else {
             index = index % INDEX_TABLE_DATA_SIZE;

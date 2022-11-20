@@ -29,7 +29,7 @@ BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
 // 数据块位图lowbit表
 BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
 // 文件系统文件
-char* fs_name = NULL;
+char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
 // 文件系统文件索引
 FILE* fp_xtfs = NULL;
 
@@ -37,8 +37,8 @@ int main(int argc, char* argv[]) {
     // INIT_XTFS_MANAGE
     FILE* fp = NULL;
     size_t filesize;
-    char filename1[MAX_FILE_NAME_LENGTH] = {0};
-    char filename2[MAX_FILE_NAME_LENGTH] = {0};
+    char filename1[MAX_FILE_NAME_LENGTH + 1] = {0};
+    char filename2[MAX_FILE_NAME_LENGTH + 1] = {0};
     INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
     // blocknr：inode表位置，index_table_blocknr：数据块索引表位置
     int i, blocknr, index_table_blocknr, index_index_b = -1;
@@ -59,9 +59,9 @@ int main(int argc, char* argv[]) {
     }
 
     // 取两个文件名称
-    strcpy(filename1, argv[1]);
-    strcpy(filename2, argv[2]);
-    fs_name = argv[3];
+    strncpy(filename1, argv[1], MAX_FILE_NAME_LENGTH);
+    strncpy(filename2, argv[2], MAX_FILE_NAME_LENGTH);
+    strncpy(fs_name, argv[3], MAX_FS_NAME_LENGTH);
 
     // 打开第二个待覆写文件，用于后续的数据读取
     fp = fopen(filename2, "r");
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     // 读取前两个数据块的数据
     read_first_two_blocks(fp_xtfs, inode_table, block_map);
 
-    blocknr = find_inode_index_table(filename1, inode_table);
+    blocknr = find_inode_table(filename1, inode_table);
 
     if (blocknr == NOT_FOUND) {
         printf("No such file: %s\n", filename1);
@@ -88,7 +88,8 @@ int main(int argc, char* argv[]) {
     // 取出第一个 index_table 的数据块地址
     index_table_blocknr = inode_table[blocknr].index_table_blocknr;
     // 取出第一个 index_table
-    read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+    // read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+    read_index_table(fp_xtfs, index_table, index_table_blocknr * BLOCK_SIZE);
 
     // 数据块内容已经存储的数据块
     exist = (inode_table[blocknr].size + BLOCK_SIZE - 1) / BLOCK_SIZE;
@@ -118,8 +119,9 @@ int main(int argc, char* argv[]) {
             INDEX_TABLE_STRUC temp = index_table[INDEX_TABLE_DATA_SIZE];
             write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
             index_table_blocknr = temp;
-            memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
-            read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            // memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
+            // read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            read_index_table(fp_xtfs, index_table, index_table_blocknr * BLOCK_SIZE);
             index = 0;
         } else {
             index = index % INDEX_TABLE_DATA_SIZE;
@@ -170,8 +172,9 @@ int main(int argc, char* argv[]) {
             write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
             index_table_blocknr = temp;
             set_block_map(0, index_table_blocknr, block_map);
-            memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
-            read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            // memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
+            // read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            read_index_table(fp_xtfs, index_table, index_table_blocknr * BLOCK_SIZE);
             index = 0;
         } else {
             index = index % INDEX_TABLE_DATA_SIZE;

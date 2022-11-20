@@ -12,7 +12,7 @@ helloMD=$(mktemp tmp.XXXX)
 bigFile=$(mktemp tmp.XXXX)
 MbigFile=$(mktemp tmp.XXXX)
 
-make
+make -j
 
 function test_format() {
      cd $1
@@ -152,12 +152,26 @@ function test_zip_read() {
      fi
 }
 
+function gtest_test() {
+     cd $1
+     ctest
+
+     if [[ $? == 0 ]]; then
+          echo "GTEST FUNCS PASSED!"
+          return 0;
+     else
+          echo "GTEST FUNCS FAILED!"
+          return 1;
+     fi
+}
+
 test_format $(pwd) && \
 test_copy_read $(pwd) && \
 test_rewrite_read $(pwd) && \
 test_rename_delete_read $(pwd) && \
 test_cipher_read $(pwd) && \
-test_zip_read $(pwd)
+test_zip_read $(pwd) && \
+gtest_test $(pwd)
 
 if [[ $? == 0 ]]; then
      echo "TEST BUILD PASSED!"

@@ -7,7 +7,7 @@ extern "C" {
 }
 
 class IO_BASIC: public testing::Test {
-  protected:
+protected:
     FILE* file = NULL;
     char* data = NULL;
     const size_t SIZE = 4096;

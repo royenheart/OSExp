@@ -35,7 +35,16 @@
 // 数据块索引表有效指向数据区大小
 #define INDEX_TABLE_DATA_SIZE (INDEX_TABLE_SIZE - 1)
 
-// 最大文件名长度
+// 目录的数据块索引表类型
+typedef struct catalog CATALOG;
+// 目录的数据块索引表大小
+#define CATALOG_TABLE_SIZE (BLOCK_SIZE/sizeof(CATALOG))
+// 目录的有效数据块索引表大小，最后一块空间作跳转用
+#define CATALOG_TABLE_DATA_SIZE (CATALOG_TABLE_SIZE - 1)
+
+// 最大文件名（对于目录也一样）长度
 #define MAX_FILE_NAME_LENGTH 20
 // 最大文件系统文件名长度
 #define MAX_FS_NAME_LENGTH 20
+// 最大目录深度（不算上根目录）
+#define MAX_ITER_FOLDER 100

@@ -21,44 +21,29 @@
 // inode表
 struct inode inode_table[NR_INODE];
 // 文件系统文件名
-char* fs_name = NULL;
+char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
 // 文件系统文件索引
 FILE* fp_xtfs = NULL;
 
 int main(int argc, char* argv[]) {
-    char filename[MAX_FILE_NAME_LENGTH] = {0};
-    char fileRename[MAX_FILE_NAME_LENGTH] = {0};
+    char filename[MAX_FILE_NAME_LENGTH + 1] = {0};
+    char fileRename[MAX_FILE_NAME_LENGTH + 1] = {0};
     int i;
 
     check_file_name(argv[1]);
     check_file_name(argv[2]);
     check_fs_name(argv[3]);
 
-    strcpy(filename, argv[1]);
-    strcpy(fileRename, argv[2]);
-    fs_name = argv[3];
+    strncpy(filename, argv[1], MAX_FILE_NAME_LENGTH);
+    strncpy(fileRename, argv[2], MAX_FILE_NAME_LENGTH);
+    strncpy(fs_name, argv[3], MAX_FS_NAME_LENGTH);
 
     fp_xtfs = fopen(fs_name, "r+");
 
     // 读取 inode_table
     read_file(fp_xtfs, 0, (char*)inode_table, BLOCK_SIZE);
 
-    // // 以文件名判断是否存在 inode_table 中
-    // for (i = 0; i < NR_INODE; i++) {
-    //     if (strcmp(inode_table[i].filename, filename) == 0) {
-    //         strcpy(inode_table[i].filename, fileRename);
-    //         break;
-    //     }
-    // }
-
-    // // 未找到该文件
-    // if (i == NR_INODE) {
-    //     printf("No such file: %s\n", filename);
-    //     fclose(fp_xtfs);
-    //     xtfs_exit(EXIT_FAILURE);
-    // }
-
-    i = find_inode_index_table(filename, inode_table);
+    i = find_inode_table(filename, inode_table);
 
     if (i == NOT_FOUND) {
         printf("No such file: %s\n", filename);
@@ -66,7 +51,7 @@ int main(int argc, char* argv[]) {
         xtfs_exit(EXIT_FAILURE);
     }
 
-    strcpy(inode_table[i].filename, fileRename);
+    strncpy(inode_table[i].filename, fileRename, MAX_FILE_NAME_LENGTH);
 
     // 将inode表写回0号数据块
     write_file(fp_xtfs, 0, (char*)inode_table, BLOCK_SIZE);

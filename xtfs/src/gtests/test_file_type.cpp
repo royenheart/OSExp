@@ -55,6 +55,29 @@ TEST_F(FILE_TYPE, IS_SPEC_TEST) {
     ASSERT_EQ(is_spec_format(TEXT_FILE | CIPHER | ZIP, ZIP), 0);
 }
 
+TEST_F(FILE_TYPE, DIR_FILE_TEST) {
+    ASSERT_EQ(get_file_type(DIR_FILE), DIR_FILE);
+}
+
+#ifdef DEBUG
+TEST_F(FILE_TYPE, ILLEGAL_TYPE) {
+    ASSERT_EQ(get_file_type(DIR_FILE | CIPHER), NO_FILE);
+    ASSERT_EQ(get_file_type(DIR_FILE | ZIP), NO_FILE);
+    ASSERT_EQ(get_file_type(DIR_FILE | CIPHER | ZIP), NO_FILE);
+    ASSERT_EQ(get_file_type(NO_FILE), NO_FILE);
+    ASSERT_EQ(get_file_type(NOT_FOUND), NO_FILE);
+    ASSERT_EQ(get_file_type(MAX_TYPE_NUM + 1), NO_FILE);
+}
+#endif
+
+TEST_F(FILE_TYPE, SAME_TYPE_CLASS_TEST) {
+    ASSERT_EQ(is_same_type_class(TEXT_FILE, EXE_FILE), 1);
+    ASSERT_EQ(is_same_type_class(TEXT_FILE, TEXT_FILE), 1);
+    ASSERT_EQ(is_same_type_class(TEXT_FILE, EXE_FILE | CIPHER), 1);
+    ASSERT_EQ(is_same_type_class(TEXT_FILE, DIR_FILE), 0);
+    ASSERT_EQ(is_same_type_class(TEXT_FILE | CIPHER, DIR_FILE), 0);
+}
+
 int main(int argc, char* argv[]) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

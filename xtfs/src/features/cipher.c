@@ -21,47 +21,17 @@
 struct inode inode_table[NR_INODE];
 BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
 BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
-char* fs_name = NULL;
+char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
 FILE* fp_xtfs = NULL;
 unsigned int pwd = 0;
-
-// int copy_blocks(char* filename, short* index_table) {
-//     FILE* fp = NULL;
-//     size_t filesize;
-//     int i, need;
-//     int blocknr;
-//     char buffer[BLOCK_SIZE] = {0};
-
-//     fp = fopen(filename, "r");
-//     filesize = read_file_size(fp);
-//     // fseek(fp, 0, SEEK_END);
-//     // filesize = ftell(fp);
-//     // fseek(fp, 0, SEEK_SET);
-//     memset((char*)index_table, 0, BLOCK_SIZE);
-//     need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
-//     short* blocknr_s = get_all_block(need, block_map, lowbit);
-//     for (i = 0; i < need; i++) {
-//         blocknr = blocknr_s[i];
-//         memset(buffer, 0, BLOCK_SIZE);
-//         fread(buffer, 1, BLOCK_SIZE, fp);
-//         for (int j = 0; j < BLOCK_SIZE; j++) {
-//             buffer[j] ^= pwd;
-//         }
-//         write_file(fp_xtfs, blocknr * BLOCK_SIZE, buffer, BLOCK_SIZE);
-//         index_table[i] = blocknr;
-//     }
-//     fclose(fp);
-//     return filesize;
-// }
 
 int main(int argc, char* argv[]) {
     // INIT_XTFS_MANAGE
     size_t filesize;
     short index_table_blocknr;
-    INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
-    char* filename = NULL;
+    char filename[MAX_FILE_NAME_LENGTH + 1] = {0};
     char* password = NULL;
-    char type;
+    int type;
     FILE* fp = NULL;
     int inode_nr;
     int i;
@@ -73,9 +43,9 @@ int main(int argc, char* argv[]) {
     check_file_name(argv[1]);
     check_fs_name(argv[3]);
 
-    filename = argv[1];
+    strncpy(filename, argv[1], MAX_FILE_NAME_LENGTH);
     type = get_file_type(atoi(argv[2]) | CIPHER);
-    fs_name = argv[3];
+    strncpy(fs_name, argv[3], MAX_FS_NAME_LENGTH);
     password = argv[4];
     pwd = 0;
 

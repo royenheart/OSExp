@@ -27,54 +27,15 @@ BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
 // 文件系统文件名
 char* fs_name = NULL;
 // 文件系统文件索引
-FILE* fp_xtfs = NULL;
-
-// /**
-//  * @brief 打开文件并将内容拷贝到数据块中，调用get_block和write_block
-//  *
-//  * @param filename 文件名
-//  * @param index_table 文件数据块索引表
-//  * @return int filesize 拷贝的文件大小
-//  */
-// int copy_blocks(char* filename, short* index_table) {
-//     FILE* fp = NULL;
-//     int filesize;
-//     int i, need;
-//     int blocknr;
-//     char buffer[BLOCK_SIZE];
-
-//     fp = fopen(filename, "r");
-//     fseek(fp, 0, SEEK_END);
-//     filesize = ftell(fp);
-//     fseek(fp, 0, SEEK_SET);
-//     memset((char*)index_table, 0, BLOCK_SIZE);
-//     // 将整个文件读入到文件系统中，并更新其数据块索引；
-//     // 先获取所有可行块，避免空间不够导致的额外开销
-//     need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
-//     short* blocknr_s = get_all_block(need, block_map, lowbit);
-//     for (i = 0; i < need; i++) {
-//         blocknr = blocknr_s[i];
-//         // 读取文件内容，以每个元素1个字节读入到512大小的字节数组buffer中
-//         // 后续读取会以上次读取停留的指针继续
-//         memset(buffer, 0, BLOCK_SIZE);
-//         fread(buffer, 1, BLOCK_SIZE, fp);
-//         write_file(fp_xtfs, blocknr * BLOCK_SIZE, buffer, BLOCK_SIZE);
-//         index_table[i] = blocknr;
-//     }
-//     fclose(fp);
-//     return filesize;
-// }
+FILE fp_xtfs[MAX_FS_NAME_LENGTH + 1] = {0};
 
 int main(int argc, char* argv[]) {
     // INIT_XTFS_MANAGE
     size_t filesize;
     short index_table_blocknr;
-    // 文件的数据块索引表
-    // 数据块索引表用于记录文件在此文件系统中占用了哪些数据块，存放该文件占用的所有数据块的块号
-    // 块号即i * 8 + j
-    INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
-    char* filename;
-    unsigned char type;
+    // 文件的数据块索引表，数据块索引表用于记录文件在此文件系统中占用了哪些数据块，存放该文件占用的所有数据块的块号
+    char filename[MAX_FILE_NAME_LENGTH + 1] = {0};
+    int type;
     int i;
 
     // 初始化lowbit表
@@ -86,10 +47,10 @@ int main(int argc, char* argv[]) {
     check_fs_name(argv[3]);
 
     // 获取待拷贝文件名和文件类型
-    filename = argv[1];
+    strncpy(filename, argv[1], MAX_FILE_NAME_LENGTH);
     // 去除特定格式
     type = get_file_type(atoi(argv[2]) & ~SPEC_TYPES);
-    fs_name = argv[3];
+    strncpy(fs_name, argv[3], MAX_FS_NAME_LENGTH);
 
     fp_xtfs = fopen(fs_name, "r+");
 

@@ -18,9 +18,6 @@
 #define MAX_POOL_LENGTH 100
 // #define INIT_XTFS_MANAGE extern void** pool; pool = (void**)malloc(MAX_POOL_LENGTH * sizeof(void*)); extern specs_copy *specs_params; specs_params = (specs_copy*)malloc(sizeof(specs_params));
 
-// #define max( x , y ) (((x) > (y))?(x):(y))
-// #define min( x , y ) (((x) < (y))?(x):(y))
-
 /**
  * @brief 退出进程
  *
@@ -88,8 +85,27 @@ void read_first_two_blocks(FILE* fp_xtfs, struct inode* inode_table, BLOCK_MAP_S
  * @param lowbit lowbit表
  * @param index_table 数据块索引表
  * @return short index_table_blocknr 存储数据块索引表的块号
+ * @deprecated 此函数只是申请了 index_table 需要的空间就直接向文件系统写入了 index_table，不符合空间全部申请再读写的要求。
  */
 short write_index_table(FILE* fp_xtfs, BLOCK_MAP_STRUC* block_map, BLOCK_MAP_TABLE_STRUC* lowbit, INDEX_TABLE_STRUC* index_table);
+
+/**
+ * @brief 读取基础格式类型文件的数据块索引表
+ * 
+ * @param fp_xtfs 打开的文件系统索引
+ * @param index_table 数据块索引表指针
+ * @param offset 偏移量
+ */
+void read_index_table(FILE* fp_xtfs, INDEX_TABLE_STRUC *index_table, int offset);
+
+/**
+ * @brief 读取目录类型文件的数据块索引表
+ * 
+ * @param fp_xtfs 打开的文件系统索引
+ * @param index_table 数据块索引表指针
+ * @param offset 偏移量
+ */
+void read_dir_index_table(FILE* fp_xtfs, CATALOG *index_table, int offset);
 
 /**
  * @brief 根据块号设置数据块位图对应flag
@@ -101,23 +117,55 @@ short write_index_table(FILE* fp_xtfs, BLOCK_MAP_STRUC* block_map, BLOCK_MAP_TAB
 void set_block_map(int flag, short blocknr, BLOCK_MAP_STRUC* block_map);
 
 /**
- * @brief 根据inode表和文件名查找存在的文件
+ * @brief 根据 inode 表和文件名查找存在的文件
  *
  * @param filename 待查找的文件名
  * @param inode_table inode表
- * @return int 文件inode在inode表中的位置，否则返回NOT FOUND
+ * @return int 文件 inode 表项在 inode 表中的位置，否则返回 NOT FOUND
+ * @deprecated 目录添加后，只根据文件名在 inode 表中查找的方法已经失效。inode 表中允许出现相同名字甚至类型相同的表项。
+ * @see find_dir_index_table
  */
-int find_inode_index_table(char* filename, struct inode* inode_table);
+int find_inode_table(char* filename, struct inode* inode_table);
 
 /**
- * @brief 将文件inode数据写入inode表
+ * @brief 根据文件名/目录名和目录的 index table 找到对应的表项
+ * 
+ * @param filename 待查找的文件、目录名
+ * @param index_table index table
+ * @param type 待查找的文件、目录类型
+ * @return int 文件/目录在 index_table 中的表项的位置，否则返回 NOT FOUND 
+ */
+int find_dir_index_table(char* filename, CATALOG* index_table, int type);
+
+/**
+ * @brief 获取 root 根目录在 inode 表中的位置
+ * 
+ * @param inode_table 查找的 inode 表
+ * @return int 返回根目录位置，若没找到返回 NOT_FOUND ，表示文件系统已经被破坏
+ */
+int get_root_inode(struct inode* inode_table);
+
+/**
+ * @brief 申请 inode 表空间，将文件inode数据写入inode表
  *
  * @param inode_table inode表
  * @param filename 文件名
  * @param type 文件类型
  * @return int 文件inode结构存储位置
  */
-int get_empty_inode(struct inode* inode_table, char* filename, char type);
+int get_empty_inode(struct inode* inode_table, char* filename, int type);
+
+/**
+ * @brief 从目录的第一个 index_table 开始查找空余位置，找到则将文件数据写入 index_table
+ * 
+ * @param index_table 待查找的 index_table
+ * @param filename 文件或目录信息
+ * @param type 文件或目录类型
+ * @param pos 文件的 inode 表位置
+ * @return int 返回存放的位置
+ * @bug 目录的 index_table 暂不支持多级索引
+ */
+int get_empty_dir_index(CATALOG *index_table, char *filename, int type, int pos);
 
 typedef struct normal_params normal_params;
 struct normal_params {

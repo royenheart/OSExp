@@ -50,7 +50,7 @@ string alpha_list;
 int tree_stack_size;
 vector<int> vec_alpha;
 
-char* fs_name = NULL;
+char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
 FILE* fp_xtfs = NULL;
 BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
 BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
@@ -202,38 +202,13 @@ void HuffmanZip() {
     filesize = file.length();
 }
 
-// int copy_blocks(short* index_table) {
-//     int filesize;
-//     int i, need;
-//     int blocknr;
-//     size_t size;
-//     char buffer[BLOCK_SIZE];
-
-//     filesize = file.length();
-
-//     memset((char*)index_table, 0, BLOCK_SIZE);
-//     need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
-//     int pos = 0;
-//     for (i = 0; i < need; i++) {
-//         blocknr = get_block(block_map, lowbit);
-//         size = min(BLOCK_SIZE, filesize - pos);
-//         for (int j = pos; j < pos + size; j++) {
-//             buffer[j - pos] = file[j];
-//         }
-//         pos += size;
-//         write_file(fp_xtfs, blocknr * BLOCK_SIZE, buffer, BLOCK_SIZE);
-//         index_table[i] = blocknr;
-//     }
-//     return filesize;
-// }
-
 int main(int argc, char* argv[]) {
     // INIT_XTFS_MANAGE
     int inode_nr;
     FILE* fp = NULL;
     int filesize;
     int type;
-    char* filename = NULL;
+    char filename[MAX_FILE_NAME_LENGTH + 1] = {0};
     INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
     int i, blocknr, index_table_blocknr;
 
@@ -245,9 +220,9 @@ int main(int argc, char* argv[]) {
     check_file_name(argv[1]);
     check_fs_name(argv[3]);
 
-    filename = argv[1];
+    strncpy(filename, argv[1], MAX_FILE_NAME_LENGTH);
     type = get_file_type(atoi(argv[2]) | ZIP);
-    fs_name = argv[3];
+    strncpy(fs_name, argv[3], MAX_FS_NAME_LENGTH);
     fp_xtfs = fopen(fs_name, "r+");
 
     read_first_two_blocks(fp_xtfs, inode_table, block_map);

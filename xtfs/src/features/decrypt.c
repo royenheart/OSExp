@@ -1,8 +1,8 @@
 /**
  * @file decrypt.c
  * @author MDND
- * @brief 解密
- * @version 0.1
+ * @brief XTFS 文件系统分区文件解密
+ * @version 1.0.0
  * @date 2022-10-25
  *
  * @copyright Copyright (c) 2022
@@ -25,7 +25,7 @@ FILE* fp_xtfs = NULL;
 unsigned int pwd;
 
 int main(int argc, char* argv[]) {
-    char **dirnames = NULL;
+    char** dirnames = NULL;
     int dir_num;
     int i;
     // 目录所需数据
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
     inode_blocknr = get_root_inode(inode_table);
     if (inode_blocknr == NOT_FOUND) {
-        printf("Root has been destroyed! This file system may not be in secure state!\n"); 
+        printf("Root has been destroyed! This file system may not be in secure state!\n");
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 
     for (i = 0; i <= dir_num; i++) {
         int child_in_father_index;
-        child_in_father_index = find_dir_index_table(dirnames[i], dir_index_table, (i < dir_num)?DIR_FILE:type | CIPHER);
+        child_in_father_index = find_dir_index_table(dirnames[i], dir_index_table, (i < dir_num) ? DIR_FILE : type | CIPHER);
         if (child_in_father_index == NOT_FOUND) {
             printf("No such file %s with type %d!\n", argv[1], type);
             fclose(fp_xtfs);

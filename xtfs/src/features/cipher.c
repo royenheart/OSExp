@@ -1,8 +1,8 @@
 /**
  * @file cipher.c
  * @author MDND
- * @brief 文件加密
- * @version 0.1
+ * @brief XTFS 文件系统分区文件加密
+ * @version 1.0.0
  * @date 2022-10-25
  *
  * @copyright Copyright (c) 2022
@@ -27,7 +27,7 @@ FILE* fp_xtfs = NULL;
 unsigned int pwd = 0;
 
 int main(int argc, char* argv[]) {
-    char **dirnames = NULL;
+    char** dirnames = NULL;
     int dir_num;
     int i;
     // 目录所需数据
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     inode_blocknr = get_root_inode(inode_table);
     if (inode_blocknr == NOT_FOUND) {
-        printf("Root has been destroyed! This file system may not be in secure state!\n"); 
+        printf("Root has been destroyed! This file system may not be in secure state!\n");
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
@@ -96,11 +96,11 @@ int main(int argc, char* argv[]) {
 
     // 在inode表中申请一个空闲inode，存放文件的inode信息
     inode_blocknr = get_empty_inode(inode_table, dirnames[dir_num], type);
-    // 在目录中添加对应的表项，并重新写回文件系统
+    // 在目录中添加对应的表项，并重新写回文件系统分区
     get_empty_dir_index(dir_index_table, dirnames[dir_num], type, inode_blocknr);
     write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)dir_index_table, CATALOG_TABLE_SIZE * sizeof(CATALOG));
 
-    FILE *fp = fopen(argv[1], "r");
+    FILE* fp = fopen(argv[1], "r");
     filesize = read_file_size(fp);
     spec_cipher_params_load(pwd, fp);
     index_table_blocknr = copy_blocks(filesize, type, block_map, lowbit, fp_xtfs);

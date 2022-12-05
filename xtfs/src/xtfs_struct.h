@@ -1,8 +1,8 @@
 /**
  * @file xtfs_struct.h
- * @author
- * @brief xtfs文件系统相关结构（声明）
- * @version 0.1
+ * @author RoyenHeart
+ * @brief XTFS 文件系统相关结构（声明）
+ * @version 1.0.0
  * @date 2022-11-13
  *
  * @copyright Copyright (c) 2022
@@ -67,7 +67,7 @@ int get_file_type(int i);
 
 /**
  * @brief 判断输入的文件类型是否是基本格式类型
- * 
+ *
  * @param type 需要判断的文件类型
  * @return char 若是，返回 BASIC_TYPE
  */
@@ -75,7 +75,7 @@ char is_basic_type(int type);
 
 /**
  * @brief 判断两个文件类型是否属于同一类
- * 
+ *
  * @param type1 文件类型1
  * @param type2 文件类型2
  * @return char 若是，返回1，否则返回0
@@ -84,7 +84,7 @@ char is_same_type_class(int type1, int type2);
 
 /**
  * @brief 判断输入的文件类型是否是目录类型
- * 
+ *
  * @param type 需要判断的文件类型
  * @return char 若是，返回 DIR_TYPE
  */
@@ -92,7 +92,7 @@ char is_dir(int type);
 
 /**
  * @brief 根据输入的文件类型判断是否使用了某种特定格式技术
- * 
+ *
  * @param type 需要判断的文件类型
  * @param spec 需要判断的特定格式
  * @return char 0表示该文件类型使用了指定的特定格式；其他数表示没有使用
@@ -101,7 +101,7 @@ char is_spec_format(int type, int spec);
 
 /**
  * @brief inode 表项
- * 
+ *
  */
 struct inode {
     int size;
@@ -114,7 +114,7 @@ struct inode {
 
 /**
  * @brief 目录项
- * 
+ *
  */
 struct catalog {
     char filename[MAX_FILE_NAME_LENGTH];

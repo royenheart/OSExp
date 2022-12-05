@@ -1,8 +1,8 @@
 /**
  * @file read.c
  * @author RoyenHeart
- * @brief 基础文件系统数据读入
- * @version 0.1
+ * @brief 基础 XTFS 文件系统分区文件内容读取
+ * @version 1.0.0
  * @date 2022-10-25
  *
  * @copyright Copyright (c) 2022
@@ -15,19 +15,19 @@
 #include "xtfs_limits.h"
 #include "xtfs_struct.h"
 #include "xtfs_manage.h"
-#include "xtfs_check.h" 
+#include "xtfs_check.h"
 #include "lex/folder_lex.h"
 #include "io.h"
 
 // inode表
 struct inode inode_table[NR_INODE];
-// 文件系统文件名
+// 文件系统分区文件名
 char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
-// 文件系统文件索引
+// 文件系统分区文件索引
 FILE* fp_xtfs = NULL;
 
 int main(int argc, char* argv[]) {
-    char **dirnames = NULL;
+    char** dirnames = NULL;
     int dir_num;
     int i;
     // 目录所需数据
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     check_fs_name(argv[3]);
 
     strncpy(fs_name, argv[3], MAX_FS_NAME_LENGTH);
-    
+
     fp_xtfs = fopen(fs_name, "r");
 
     read_file(fp_xtfs, 0, (char*)inode_table, BLOCK_SIZE);
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     // 查找文件
     inode_blocknr = get_root_inode(inode_table);
     if (inode_blocknr == NOT_FOUND) {
-        printf("Root has been destroyed! This file system may not be in secure state!\n"); 
+        printf("Root has been destroyed! This file system may not be in secure state!\n");
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     for (i = 0; i <= dir_num; i++) {
         int child_in_father_index;
-        child_in_father_index = find_dir_index_table(dirnames[i], dir_index_table, (i < dir_num)?DIR_FILE:type);
+        child_in_father_index = find_dir_index_table(dirnames[i], dir_index_table, (i < dir_num) ? DIR_FILE : type);
         if (child_in_father_index == NOT_FOUND) {
             printf("No such file %s with type %d!\n", argv[1], type);
             fclose(fp_xtfs);
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     filesize = inode_table[inode_blocknr].size;
     // 数据块内容已经存储的数据块
     exist = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    
+
     // 根据数据块索引表读入文件数据
     for (i = 0; i < exist; i++) {
         // 防止缓存区溢出

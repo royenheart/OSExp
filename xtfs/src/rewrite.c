@@ -1,9 +1,9 @@
 /**
  * @file rewrite.c
  * @author MDND
- * @brief 基础文件系统文件重写
- * @details 重写文件内容,不更改文件名
- * @version 0.1
+ * @brief 基础 XTFS 文件系统分区文件重写
+ * @details XTFS 文件系统分区文件重写，只重写文件内容，不更改文件名
+ * @version 1.0.0
  * @date 2022-10-25
  *
  * @copyright Copyright (c) 2022
@@ -26,21 +26,20 @@ struct inode inode_table[NR_INODE];
 BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
 // 数据块位图lowbit表
 BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
-// 文件系统文件
+// 文件系统分区文件
 char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
-// 文件系统文件索引
+// 文件系统分区文件索引
 FILE* fp_xtfs = NULL;
 
 int main(int argc, char* argv[]) {
     FILE* fp = NULL;
     size_t filesize;
     int inode_blocknr;
-    char **source_files = NULL, **rewrite_files = NULL;
+    char** source_files = NULL, **rewrite_files = NULL;
     CATALOG dir_index_table[CATALOG_TABLE_SIZE];
     int source_num, rewrite_num;
     int type;
     INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
-    // blocknr：inode表位置，index_table_blocknr：数据块索引表位置
     int i, index_table_blocknr, index_index_b = -1;
     size_t size;
     char buffer[BLOCK_SIZE];
@@ -74,7 +73,7 @@ int main(int argc, char* argv[]) {
     // 查找文件
     inode_blocknr = get_root_inode(inode_table);
     if (inode_blocknr == NOT_FOUND) {
-        printf("Root has been destroyed! This file system may not be in secure state!\n"); 
+        printf("Root has been destroyed! This file system may not be in secure state!\n");
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
@@ -83,7 +82,7 @@ int main(int argc, char* argv[]) {
 
     for (i = 0; i <= source_num; i++) {
         int child_in_father_index;
-        child_in_father_index = find_dir_index_table(source_files[i], dir_index_table, (i < source_num)?DIR_FILE:type);
+        child_in_father_index = find_dir_index_table(source_files[i], dir_index_table, (i < source_num) ? DIR_FILE : type);
         if (child_in_father_index == NOT_FOUND) {
             printf("No such file %s with type %d!\n", argv[1], type);
             fclose(fp_xtfs);
@@ -127,7 +126,7 @@ int main(int argc, char* argv[]) {
         if (size == 0) {
             break;
         }
-        // 检查 index_table ，得到应该写入的正确位置，若当前已满，需要先写入，再读出以存在的下一个文件系统进行读取
+        // 检查 index_table ，得到应该写入的正确位置，若当前已满，需要先写入，再读出已存在的下一数据块
         INDEX_TABLE_STRUC index = i;
         if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             INDEX_TABLE_STRUC temp = index_table[INDEX_TABLE_DATA_SIZE];
@@ -154,7 +153,7 @@ int main(int argc, char* argv[]) {
         }
         // 将文件内容写进下一个块
         write_file(fp_xtfs, next_blocknr * BLOCK_SIZE, buffer, BLOCK_SIZE);
-        // 检查 index_table ，得到应该写入的正确位置，若当前已满，需要先写入，再读出不存在文件系统的下一个进行输入
+        // 检查 index_table ，得到应该写入的正确位置，若当前已满，需要先写入，再读出下一个数据块
         INDEX_TABLE_STRUC index = i + exist;
         if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             INDEX_TABLE_STRUC temp = index_blocknr_s[++index_index_b];
@@ -172,7 +171,7 @@ int main(int argc, char* argv[]) {
 
     // 释放不需要的文件位置
     for (i = need; i < exist; i++) {
-        // 检查 index_table ，得到应该释放的正确位置，若当前已满，需要将其当前index_table最后的标识位置为0，更改 block_map 并写进，再读出以存在文件系统中的下一个数据块索引表进行释放
+        // 检查 index_table ，得到应该释放的正确位置，若当前已满，需要将其当前index_table最后的标识位置为0，更改 block_map 并写进，再读出下一个数据块索引表进行释放
         INDEX_TABLE_STRUC index = i;
         if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             INDEX_TABLE_STRUC temp = index_table[INDEX_TABLE_DATA_SIZE];
@@ -191,9 +190,9 @@ int main(int argc, char* argv[]) {
         index_table[index] = 0;
     }
 
-    // 将未被写入的 index_table 写入文件系统
+    // 将未被写入的 index_table 写入文件系统分区
     write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
-    
+
     // 修改inode记录的文件大小
     inode_table[inode_blocknr].size = filesize;
     write_first_two_blocks(fp_xtfs, inode_table, block_map);

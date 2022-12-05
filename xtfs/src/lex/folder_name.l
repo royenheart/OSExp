@@ -23,7 +23,7 @@ int folder_num = -1;
 const int max_iter_folder = MAX_ITER_FOLDER;
 %}
 
-FOLDER ([a-zA-Z0-9\-_\.]+|\"{1}[a-zA-Z0-9\.\-_ ]+\"{1}|\"{1}[a-zA-Z0-9\.\-_ ]+\"{1})
+FOLDER ([a-zA-Z0-9\-_\.]+|\"{1}[a-zA-Z0-9\.\-_ ]+\"{1}|\'{1}[a-zA-Z0-9\.\-_ ]+\'{1})
 
 DELIM \/
 

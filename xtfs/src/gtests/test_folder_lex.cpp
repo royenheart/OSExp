@@ -1,3 +1,14 @@
+/**
+ * @file test_folder_lex.cpp
+ * @author RoyenHeart
+ * @brief 测试正则匹配功能
+ * @version 1.0.0
+ * @date 2022-12-05
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
 #include <gtest/gtest.h>
 #include <cstdio>
 #include <cstdlib>
@@ -9,8 +20,8 @@ extern "C" {
 }
 
 class FOLDER_LEX: public testing::Test {
-protected:
-    char **str = NULL;
+  protected:
+    char** str = NULL;
     int ret;
     virtual void SetUp() {}
 
@@ -48,6 +59,13 @@ TEST_F(FOLDER_LEX, IDENTIFY_FORM4) {
     ret = get_folders("/hello.md", &str);
     ASSERT_FALSE(str == NULL);
     ASSERT_STREQ("hello.md", str[0]);
+    ASSERT_NE(ret, ERROR_PARSE);
+}
+
+TEST_F(FOLDER_LEX, IDENTIFY_FORM5) {
+    ret = get_folders("/'hello 243'", &str);
+    ASSERT_FALSE(str == NULL);
+    ASSERT_STREQ("'hello 243'", str[0]);
     ASSERT_NE(ret, ERROR_PARSE);
 }
 

@@ -449,11 +449,12 @@ char *yytext;
 #include <unistd.h>
 #include "../xtfs_limits.h"
 #include "../xtfs_manage.h"
+#include "../xtfs_struct.h"
 #include "folder_lex.h"
 // 文件夹
 #define T_FOLDER 1
-// 无文件夹指定错误
-#define T_NONE 2
+// 分割符号
+#define T_DELIM 2
 // 文件夹名称格式错误
 #define T_ERROR 3
 // 文件夹名字过长
@@ -462,7 +463,6 @@ char *yytext;
 #define T_ITER_TOO_DEEP 5
 // 读到匹配串尾部
 #define T_END 0
-int delim = 0;
 int folder_num = -1;
 const int max_iter_folder = MAX_ITER_FOLDER;
 #line 469 "lex.yy.c"
@@ -683,7 +683,7 @@ YY_DECL
 		}
 
 	{
-#line 28 "folder_name.l"
+#line 30 "folder_name.l"
 
 #line 689 "lex.yy.c"
 
@@ -744,26 +744,26 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 29 "folder_name.l"
+#line 31 "folder_name.l"
 {folder_num++; return (folder_num > max_iter_folder - 1)?T_ITER_TOO_DEEP:T_FOLDER;}
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 30 "folder_name.l"
-{return (folder_num < 0)?T_NONE:T_END;}
+#line 32 "folder_name.l"
+{return T_END;}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 31 "folder_name.l"
-{delim++;}
+#line 33 "folder_name.l"
+{return T_DELIM;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 32 "folder_name.l"
+#line 34 "folder_name.l"
 {return T_ERROR;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 33 "folder_name.l"
+#line 35 "folder_name.l"
 ECHO;
 	YY_BREAK
 #line 770 "lex.yy.c"
@@ -1769,16 +1769,13 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 33 "folder_name.l"
+#line 35 "folder_name.l"
 
 
-// int main(int argc, char* argv[]) {
 int get_folders(const char* strs, char ***store) {
     int token_type;
     FILE *fp;
     int i;
-    // char **matches[MAX_ITER_FOLDER + 1][MAX_FILE_NAME_LENGTH] = {0};
-    // char **matches = (char**)malloc((MAX_ITER_FOLDER + 1) * sizeof(char**));
     *store = (char**)malloc((MAX_ITER_FOLDER + 1) * sizeof(char**));
     char tmpF[] = "/tmp/temp_file.XXXXXX";
     int fd = mkstemp(tmpF);
@@ -1792,21 +1789,22 @@ int get_folders(const char* strs, char ***store) {
     fclose(fp);
 
     for (i = 0; i < MAX_ITER_FOLDER + 1; i++) {
-        // matches[i] = (char*)malloc(MAX_FILE_NAME_LENGTH * sizeof(char*));
-        // memset(matches[i], 0, MAX_FILE_NAME_LENGTH * sizeof(char));
         (*store)[i] = (char*)malloc(MAX_FILE_NAME_LENGTH * sizeof(char*));
         memset((*store)[i], 0, MAX_FILE_NAME_LENGTH * sizeof(char));
     }
 
-    while ((token_type = yylex()) == T_FOLDER) {
+    token_type = yylex();
+    while (token_type == T_FOLDER || token_type == T_DELIM) {
+        if (token_type == T_DELIM) {
+            token_type = yylex();
+            continue;
+        }
         if (strlen(yytext) > MAX_FILE_NAME_LENGTH) {
             token_type = T_NAME_TOO_LONG;
             break;
         }
-        // strcpy(matches[folder_num], yytext);
         strcpy((*store)[folder_num], yytext);
-        // printf("FOLDER: %s,%d\n", yytext, strlen(yytext));
-        // printf("FOLDER_MATCHES: %s,%d\n", matches[folder_num], strlen(matches[folder_num]));
+        token_type = yylex();
     }
 
     // 删除文件的目录入口，由于之前的文件被用完整文件名打开，故要结束后在这里取消
@@ -1816,24 +1814,21 @@ int get_folders(const char* strs, char ***store) {
 
     int ret = folder_num;
     // 生成到源代码是全局变量，多次读取会导致位置问题
-    delim = 0;
     folder_num = -1;
 
-    if (token_type == T_ERROR || token_type == T_NONE || 
-        token_type == T_NAME_TOO_LONG || token_type == T_ITER_TOO_DEEP) {
+    if (token_type == T_ERROR || token_type == T_NAME_TOO_LONG || 
+        token_type == T_ITER_TOO_DEEP) {
         if (token_type == T_ERROR) {
             printf("Not a regular folder!\n");
-        } else if (token_type == T_NONE) {
-            printf("No folder specified!\n");
         } else if (token_type == T_NAME_TOO_LONG) {
             printf("Folder name %s too long!\n", yytext);
         } else if (token_type == T_ITER_TOO_DEEP) {
             printf("Folder iter too deep!\n");
         }
-        // free(matches);
         // 后面使用统一的内存管理机制（xtfs_manage.c）进行管理。
+        // free(matches);
         // free(*store);
-        return -1;
+        return ERROR_PARSE;
     }
 
     return ret;

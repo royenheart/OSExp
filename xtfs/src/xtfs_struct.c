@@ -78,9 +78,4 @@ inline char is_same_type_class(int type1, int type2) {
 
 inline char is_spec_format(int type, int spec) {
     return ((type | spec) != type)?1:0;
-    // if ((type | spec) != type) {
-    //     return 1; 
-    // } else {
-    //     return 0;
-    // }
 }

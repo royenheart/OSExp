@@ -17,6 +17,7 @@
 
 #define NO_FILE 0
 #define NOT_FOUND -1
+#define ERROR_PARSE -2
 // 无文件类型（不作为一个真正的文件类型）
 #define NO_TYPE 0
 

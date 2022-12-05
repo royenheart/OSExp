@@ -16,6 +16,7 @@
 #include "xtfs_struct.h"
 #include "xtfs_manage.h"
 #include "xtfs_check.h"
+#include "io.h"
 #include "lex/folder_lex.h"
 
 // inode表
@@ -33,7 +34,7 @@ int main(int argc, char* argv[]) {
     char **dirnames = NULL;
     char blank[BLOCK_SIZE] = {0};
     int dir_num;
-    int i, j;
+    int i;
     int father_inode;
     INDEX_TABLE_STRUC father_index_table_blocknr;
     // 当前需要查找的数据块索引表（按照目录的结构）
@@ -43,9 +44,9 @@ int main(int argc, char* argv[]) {
 
     dir_num = get_folders(argv[1], &dirnames);
     
-    if (dirnames == NULL || dir_num == -1) {
-        printf("mkdir failed due to the errors above!\n");
-        xtfs_exit(-1);
+    if (dir_num == ERROR_PARSE) {
+        printf("mkdir failed, check the input file format!\n");
+        xtfs_exit(EXIT_FAILURE);
     }
 
     // 初始化lowbit表
@@ -67,7 +68,6 @@ int main(int argc, char* argv[]) {
     }
     // 得到根目录的第一个数据块索引表
     father_index_table_blocknr = inode_table[father_inode].index_table_blocknr;
-    // read_file(fp_xtfs, father_index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
     read_dir_index_table(fp_xtfs, index_table, father_index_table_blocknr * BLOCK_SIZE);
     // 读取文件大小（后面目录支持二级索引，需要进行占用数据块索引表大小的变更）
     // filesize = inode_table[inode_index_table].size;
@@ -91,8 +91,6 @@ int main(int argc, char* argv[]) {
             // 进行迭代
             father_inode = new_inode;
             father_index_table_blocknr = new_index[0];
-            // memset(index_table, 0, CATALOG_TABLE_SIZE * sizeof(CATALOG));
-            // read_file(fp_xtfs, father_index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
             read_dir_index_table(fp_xtfs, index_table, father_index_table_blocknr * BLOCK_SIZE);
         } else {
             // 获取 inode 表项

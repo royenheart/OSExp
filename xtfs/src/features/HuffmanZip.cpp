@@ -22,6 +22,7 @@ extern "C" {
 #include "../xtfs_struct.h"
 #include "../xtfs_manage.h"
 #include "../xtfs_check.h"
+#include "../lex/folder_lex.h"
 #include "../io.h"
 }
 
@@ -203,43 +204,82 @@ void HuffmanZip() {
 }
 
 int main(int argc, char* argv[]) {
-    // INIT_XTFS_MANAGE
-    int inode_nr;
+    char **dirnames = NULL;
+    int dir_num;
+    int i;
     FILE* fp = NULL;
-    int filesize;
+    // 目录所需数据
+    CATALOG dir_index_table[CATALOG_TABLE_SIZE];
+    // 文件所需数据
+    int inode_blocknr;
+    size_t filesize;
     int type;
-    char filename[MAX_FILE_NAME_LENGTH + 1] = {0};
+    INDEX_TABLE_STRUC index_table_blocknr;
     INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
-    int i, blocknr, index_table_blocknr;
 
     // 初始化 lowbit 表
     for (int i = 0; i < 8; i++) {
         lowbit[1 << i] = i;
     }
 
-    check_file_name(argv[1]);
     check_fs_name(argv[3]);
 
-    strncpy(filename, argv[1], MAX_FILE_NAME_LENGTH);
+    dir_num = get_folders(argv[1], &dirnames);
+
+    if (dir_num == ERROR_PARSE) {
+        printf("zip failed, check the input file format!\n");
+        xtfs_exit(EXIT_FAILURE);
+    }
+
     type = get_file_type(atoi(argv[2]) | ZIP);
+    if (is_same_type_class(type, DIR_FILE) == 1) {
+        printf("Can't zip all folder right now!\n");
+        xtfs_exit(EXIT_FAILURE);
+    }
     strncpy(fs_name, argv[3], MAX_FS_NAME_LENGTH);
     fp_xtfs = fopen(fs_name, "r+");
 
     read_first_two_blocks(fp_xtfs, inode_table, block_map);
-    // 先申请一块空闲的 inode 表
-    inode_nr = get_empty_inode(inode_table, filename, type);
 
-    read_blocks(filename);
+    inode_blocknr = get_root_inode(inode_table);
+    if (inode_blocknr == NOT_FOUND) {
+        printf("Root has been destroyed! This file system may not be in secure state!\n"); 
+        fclose(fp_xtfs);
+        xtfs_exit(EXIT_FAILURE);
+    }
+    index_table_blocknr = inode_table[inode_blocknr].index_table_blocknr;
+    read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
+
+    for (i = 0; i < dir_num; i++) {
+        int child_in_father_index;
+        child_in_father_index = find_dir_index_table(dirnames[i], dir_index_table, DIR_FILE);
+        if (child_in_father_index == NOT_FOUND) {
+            printf("No such dir!\n");
+            fclose(fp_xtfs);
+            xtfs_exit(EXIT_FAILURE);
+        } else {
+            int curr_inode = dir_index_table[child_in_father_index].pos;
+            index_table_blocknr = inode_table[curr_inode].index_table_blocknr;
+            read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
+            inode_blocknr = curr_inode;
+        }
+    }
+
+    // 在inode表中申请一个空闲inode，存放文件的inode信息
+    inode_blocknr = get_empty_inode(inode_table, dirnames[dir_num], type);
+    // 在目录中添加对应的表项，并重新写回文件系统
+    get_empty_dir_index(dir_index_table, dirnames[dir_num], type, inode_blocknr);
+    write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)dir_index_table, CATALOG_TABLE_SIZE * sizeof(CATALOG));
+
+    read_blocks(argv[1]);
     HuffmanZip();
     filesize = file.length();
     int pos = 0;
     spec_huffman_zip_params_load(filesize, &pos, file.c_str());
     index_table_blocknr = copy_blocks(filesize, type, block_map, lowbit, fp_xtfs);
 
-    // filesize = copy_blocks(index_table);
-    // index_table_blocknr = write_index_table(fp_xtfs, block_map, lowbit, index_table);
-    inode_table[inode_nr].size = filesize;
-    inode_table[inode_nr].index_table_blocknr = index_table_blocknr;
+    inode_table[inode_blocknr].size = filesize;
+    inode_table[inode_blocknr].index_table_blocknr = index_table_blocknr;
     write_first_two_blocks(fp_xtfs, inode_table, block_map);
 
     fclose(fp_xtfs);

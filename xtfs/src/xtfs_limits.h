@@ -46,5 +46,5 @@ typedef struct catalog CATALOG;
 #define MAX_FILE_NAME_LENGTH 20
 // 最大文件系统文件名长度
 #define MAX_FS_NAME_LENGTH 20
-// 最大目录深度（不算上根目录）
+// 最大目录深度
 #define MAX_ITER_FOLDER 100

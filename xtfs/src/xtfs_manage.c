@@ -21,10 +21,6 @@
 #include <jemalloc/jemalloc.h>
 #endif
 
-// void** pool = NULL;
-// int pool_top = -1;
-// specs_copy *specs_params = NULL;
-
 void* pool[MAX_POOL_LENGTH];
 int pool_top = -1;
 specs_copy specs_params;
@@ -241,7 +237,6 @@ void set_block_map(int flag, short blocknr, BLOCK_MAP_STRUC* block_map) {
 }
 
 int find_inode_table(char* filename, struct inode* inode_table) {
-    // 遍历 inode_table 数组，找到与文件名对应的 inode 表项
     int i;
     for (i = 0; i < NR_INODE; i++) {
         if (inode_table[i].type == NO_FILE) {
@@ -286,12 +281,7 @@ int get_empty_inode(struct inode* inode_table, char* filename, int type) {
             inode_table[i].type = type;
             strncpy(inode_table[i].filename, filename, MAX_FILE_NAME_LENGTH);
             break;
-        } /**else if (strcmp(inode_table[i].filename, filename) == 0) {
-            // 需要执行覆写程序
-            printf("File Exits!.\n");
-            xtfs_exit(EXIT_FAILURE);
-        } */
-        // 在目录添加后，inode_table 表中允许出现文件名和类型都相同的表项
+        }
     }
 
     if (i == NR_INODE) {
@@ -313,6 +303,7 @@ int get_empty_dir_index(CATALOG *index_table, char *filename, int type, int pos)
             ret = i;
             found = 1;
         } else if (is_same_type_class(index_table[i].type, type) && strcmp(index_table[i].filename, filename) == 0) {
+            // 可能需要执行覆写？
             printf("File Exits!.\n");
             xtfs_exit(EXIT_FAILURE);
         }

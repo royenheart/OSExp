@@ -1,6 +1,6 @@
 /**
  * @file format.c
- * @author RoyenHeart, Ruoxuan Wang, MDND, bow
+ * @author RoyenHeart, ovovcast, MDND, bow
  * @brief 格式化镜像、分区文件系统
  * @version 0.1
  * @date 2022-10-25

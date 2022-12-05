@@ -1,8 +1,8 @@
 /**
  * @file io.h
- * @author
+ * @author RoyenHearts
  * @brief 基础文件读写模块（声明）
- * @version 0.1
+ * @version 1.0.0
  * @date 2022-11-13
  *
  * @copyright Copyright (c) 2022
@@ -27,7 +27,7 @@ size_t write_file(FILE* fp, long long offset, char* buffer, size_t size);
 
 /**
  * @brief 先对文件对应块 size 大小的部分全部覆盖，再将数据写入文件，
- * 
+ *
  * @param fp 已打开的文件索引
  * @param offset 写入偏移量（字节计算）
  * @param buffer 需要写入的字节数组
@@ -51,8 +51,8 @@ size_t read_file(FILE* fp, long long offset, char* buffer, size_t size);
 
 /**
  * @brief 读取文件大小
- * 
+ *
  * @param fp 打开的文件索引
  * @return size_t 文件大小
  */
-size_t read_file_size(FILE *fp);
+size_t read_file_size(FILE* fp);

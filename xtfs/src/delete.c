@@ -1,8 +1,8 @@
 /**
  * @file delete.c
  * @author bow
- * @brief xtfs文件系统文件删除
- * @version 0.1
+ * @brief XTFS 文件系统分区文件删除
+ * @version 1.0.0
  * @date 2022-11-14
  *
  * @copyright Copyright (c) 2022
@@ -19,17 +19,17 @@
 #include "io.h"
 #include "lex/folder_lex.h"
 
-// inode表
+// inode 表
 struct inode inode_table[NR_INODE];
 // 读取的数据块位图
 BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
-// 文件系统文件名
+// 文件系统分区文件名
 char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
-// 文件系统文件索引
+// 文件系统分区文件索引
 FILE* fp_xtfs = NULL;
 
 int main(int argc, char* argv[]) {
-    char **dirnames = NULL;
+    char** dirnames = NULL;
     int dir_num;
     int i;
     // 目录信息
@@ -42,7 +42,6 @@ int main(int argc, char* argv[]) {
     INDEX_TABLE_STRUC exist;
     INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
 
-    // 要打开的文件系统是否要求
     check_fs_name(argv[3]);
 
     // 提取文件路径
@@ -59,7 +58,6 @@ int main(int argc, char* argv[]) {
         xtfs_exit(EXIT_FAILURE);
     }
 
-    // 将文件系统名赋值给fs_name
     strncpy(fs_name, argv[3], MAX_FS_NAME_LENGTH);
 
     fp_xtfs = fopen(fs_name, "r+");
@@ -69,18 +67,18 @@ int main(int argc, char* argv[]) {
     // 获取根节点
     inode_blocknr = get_root_inode(inode_table);
     if (inode_blocknr == NOT_FOUND) {
-        printf("Root has been destroyed! This file system may not be in secure state!\n"); 
+        printf("Root has been destroyed! This file system may not be in secure state!\n");
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
     // 得到根目录的第一个数据块索引表
     index_table_blocknr = inode_table[inode_blocknr].index_table_blocknr;
-    
+
     // 读取目录类型文件的数据块索引表(manage)，存到dir_index_table中
     read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
-    
+
     for (i = 0; i <= dir_num; i++) {
-        int child_in_father_index = find_dir_index_table(dirnames[i], dir_index_table, (i < dir_num)?DIR_FILE:type);
+        int child_in_father_index = find_dir_index_table(dirnames[i], dir_index_table, (i < dir_num) ? DIR_FILE : type);
         if (child_in_father_index == NOT_FOUND) {
             printf("The file or path %s with type %d does not exist!\n", argv[1], type);
             fclose(fp_xtfs);
@@ -99,7 +97,7 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    
+
     // 读取文件大小
     filesize = inode_table[inode_blocknr].size;
     // 数据块内容已经存储的数据块
@@ -126,7 +124,7 @@ int main(int argc, char* argv[]) {
     // 将对应 inode 表类型置0，即表示为空文件
     inode_table[inode_blocknr].type = NO_FILE;
 
-    // 删除完毕，将 inode 表和 block map 写入文件系统
+    // 删除完毕，将 inode 表和 block map 写入文件系统分区
     write_first_two_blocks(fp_xtfs, inode_table, block_map);
 
     fclose(fp_xtfs);

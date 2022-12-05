@@ -1,12 +1,12 @@
 /**
  * @file mv.c
  * @author ovovcast
- * @brief 基础文件系统剪切
- * @details 
+ * @brief XTFS 文件系统分区基础文件系统剪切
+ * @details
  * 提供文件、目录剪切：(目标参数必须为目录)
  * 1. 源文件类型为目录，将源目录剪切至目标目录下，保留文件名
  * 2. 源文件类型为文件，将源文件剪切至目标目录下，保留文件名
- * @version 0.1
+ * @version 1.0.0
  * @date 2022-11-22
  *
  * @copyright Copyright (c) 2022
@@ -29,13 +29,13 @@ BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
 struct inode inode_table[NR_INODE];
 // 读取的数据块位图
 BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
-// 文件系统文件名
+// 文件系统分区文件名
 char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
-// 文件系统文件索引
+// 文件系统分区文件索引
 FILE* fp_xtfs = NULL;
 
 int main(int argc, char* argv[]) {
-    char **dir_names = NULL, **dir_renames = NULL;
+    char** dir_names = NULL, **dir_renames = NULL;
     int dir_num, dir_renum;
     int i;
     // 源文件信息
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     // 获取目录、文件结构
     dir_num = get_folders(argv[1], &dir_names);
     dir_renum = get_folders(argv[3], &dir_renames);
-    
+
     // 路径错误
     if (dir_num == ERROR_PARSE || dir_renum == ERROR_PARSE) {
         printf("delete failed, check the input file format!\n");
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     }
 
     type = get_file_type(atoi(argv[2]));
-    
+
     strncpy(fs_name, argv[4], MAX_FS_NAME_LENGTH);
     fp_xtfs = fopen(fs_name, "r+");
 
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     // father_inode 为 root 根目录在 inode 表中的位置
     file_father_inode = get_root_inode(inode_table);
     if (file_father_inode == NOT_FOUND) {
-        printf("Root has been destroyed! This file system may not be in secure state!\n"); 
+        printf("Root has been destroyed! This file system may not be in secure state!\n");
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
         // 根据文件名，目录名和目录的 index table 找到对应的表项
         int child_in_father_index;
         child_in_father_index = find_dir_index_table(dir_names[i], dir_index_table, DIR_FILE);
-        if (child_in_father_index == NOT_FOUND) {   
+        if (child_in_father_index == NOT_FOUND) {
             printf("No such source dir %s!\n", argv[1]);
             fclose(fp_xtfs);
             xtfs_exit(EXIT_FAILURE);
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     refile_father_inode = get_root_inode(inode_table);
     refather_index_table_blocknr = inode_table[refile_father_inode].index_table_blocknr;
     read_dir_index_table(fp_xtfs, redir_index_table, refather_index_table_blocknr * BLOCK_SIZE);
-    
+
     for (i = 0; i <= dir_renum; i++) {
         int child_in_father_index;
         child_in_father_index = find_dir_index_table(dir_renames[i], redir_index_table, DIR_FILE);
@@ -148,13 +148,13 @@ int main(int argc, char* argv[]) {
     // 在目标目录下进行剪切操作
     get_empty_dir_index(redir_index_table, dir_names[dir_num], type, file_inode);
 
-    // 全部结束后写入文件系统  
+    // 全部结束后写入文件系统分区
     write_file(fp_xtfs, father_index_table_blocknr * BLOCK_SIZE, (char*)dir_index_table, CATALOG_TABLE_SIZE * sizeof(CATALOG));
     write_file(fp_xtfs, refather_index_table_blocknr * BLOCK_SIZE, (char*)redir_index_table, CATALOG_TABLE_SIZE * sizeof(CATALOG));
 
     // 将inode表写回0号数据块
     write_file(fp_xtfs, 0, (char*)inode_table, BLOCK_SIZE);
-    // 关闭文件系统
+    // 关闭文件系统分区
     fclose(fp_xtfs);
 
     return (EXIT_SUCCESS);

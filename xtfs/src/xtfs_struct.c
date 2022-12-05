@@ -1,8 +1,8 @@
 /**
  * @file xtfs_struct.c
- * @author
- * @brief xtfs文件系统相关结构（实现）
- * @version 0.1
+ * @author RoyenHeart
+ * @brief XTFS 文件系统相关结构（实现）
+ * @version 1.0.0
  * @date 2022-11-14
  *
  * @copyright Copyright (c) 2022
@@ -17,22 +17,22 @@
 int get_file_type(int i) {
     // 去除特定格式
     int ex_i = i & ~SPEC_TYPES;
-    int use_spec = (ex_i == i)?0:1;
+    int use_spec = (ex_i == i) ? 0 : 1;
     if (i <= NO_FILE || ex_i == 0) {
         printf("Not a file type!\n");
-        #ifndef DEBUG
+#ifndef DEBUG
         xtfs_exit(EXIT_FAILURE);
-        #else
+#else
         return NO_FILE;
-        #endif
+#endif
     }
     if (i > MAX_TYPE_NUM) {
         printf("No such file type!\n");
-        #ifndef DEBUG
+#ifndef DEBUG
         xtfs_exit(EXIT_FAILURE);
-        #else
+#else
         return NO_FILE;
-        #endif
+#endif
     }
     if (ex_i >= UNKNOWN_FILE) {
         printf("Unknown File Type!\n");
@@ -40,11 +40,11 @@ int get_file_type(int i) {
     }
     if (use_spec && ex_i == DIR_FILE) {
         printf("Dir file not support special format!\n");
-        #ifndef DEBUG
+#ifndef DEBUG
         xtfs_exit(EXIT_FAILURE);
-        #else
+#else
         return NO_FILE;
-        #endif
+#endif
     }
     return i;
 }
@@ -59,7 +59,7 @@ inline char is_basic_type(int type) {
 
 inline char is_dir(int type) {
     type = type & ~SPEC_TYPES;
-    return (type == DIR_FILE)?DIR_TYPE:NO_TYPE;
+    return (type == DIR_FILE) ? DIR_TYPE : NO_TYPE;
 }
 
 inline char is_same_type_class(int type1, int type2) {
@@ -77,5 +77,5 @@ inline char is_same_type_class(int type1, int type2) {
 }
 
 inline char is_spec_format(int type, int spec) {
-    return ((type | spec) != type)?1:0;
+    return ((type | spec) != type) ? 1 : 0;
 }

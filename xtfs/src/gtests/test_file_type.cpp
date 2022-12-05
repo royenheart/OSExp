@@ -1,3 +1,14 @@
+/**
+ * @file test_file_type.cpp
+ * @author RoyenHeart
+ * @brief 测试文件类型相关函数
+ * @version 1.0.0
+ * @date 2022-12-05
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
 #include <gtest/gtest.h>
 #include <cstdio>
 #include <cstdlib>

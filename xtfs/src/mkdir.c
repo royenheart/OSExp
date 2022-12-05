@@ -1,12 +1,12 @@
 /**
  * @file mkdir.c
  * @author RoyenHeart
- * @brief 创建目录
- * @version 0.1
+ * @brief XTFS 文件系统分区创建目录
+ * @version 1.0.0
  * @date 2022-11-19
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include <stdio.h>
@@ -25,13 +25,13 @@ struct inode inode_table[NR_INODE];
 BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
 // 数据块位图lowbit表
 BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
-// 文件系统文件名
+// 文件系统分区文件名
 char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
-// 文件系统文件索引
+// 文件系统分区文件索引
 FILE* fp_xtfs = NULL;
 
 int main(int argc, char* argv[]) {
-    char **dirnames = NULL;
+    char** dirnames = NULL;
     char blank[BLOCK_SIZE] = {0};
     int dir_num;
     int i;
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     check_fs_name(argv[2]);
 
     dir_num = get_folders(argv[1], &dirnames);
-    
+
     if (dir_num == ERROR_PARSE) {
         printf("mkdir failed, check the input file format!\n");
         xtfs_exit(EXIT_FAILURE);
@@ -55,14 +55,14 @@ int main(int argc, char* argv[]) {
     }
 
     strncpy(fs_name, argv[2], MAX_FS_NAME_LENGTH);
-    
+
     fp_xtfs = fopen(fs_name, "r+");
 
     read_first_two_blocks(fp_xtfs, inode_table, block_map);
 
     father_inode = get_root_inode(inode_table);
     if (father_inode == NOT_FOUND) {
-        printf("Root has been destroyed! This file system may not be in secure state!\n"); 
+        printf("Root has been destroyed! This file system may not be in secure state!\n");
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
@@ -78,14 +78,14 @@ int main(int argc, char* argv[]) {
         // 找到和未找到的处理
         if (child_in_father_index == NOT_FOUND) {
             // 创建目录，申请 index_table 和 inode 表空间并填充相应数据
-            short *new_index = get_all_block(1, block_map, lowbit);
+            short* new_index = get_all_block(1, block_map, lowbit);
             int new_inode = get_empty_inode(inode_table, dirnames[i], DIR_FILE);
             child_in_father_index = get_empty_dir_index(index_table, dirnames[i], DIR_FILE, new_inode);
-            // 由于目录的 index table 块处于和普通文件共享的数据区，且目录需要从此块读取数字，因此每次申请到新的 index table 空间，都需要将其覆盖，防止之前的数据的影响
+            // 由于目录的 index table 块处于和普通文件共享的数据区，且目录需要从此块读取数据，因此每次申请到新的 index table 空间，都需要将其覆盖，防止之前的数据的影响
             write_file(fp_xtfs, new_index[0] * BLOCK_SIZE, blank, BLOCK_SIZE);
             inode_table[new_inode].index_table_blocknr = new_index[0];
             inode_table[new_inode].size = 1;
-            // 申请和数据填充完成，将父目录的 index_table 写入文件系统
+            // 申请和数据填充完成，将父目录的 index_table 写入文件系统分区
             // 这里改成全部空间全部申请完成后再写入会好点，但是与现有实现功能不是很匹配，只能先这样写，后面若有更好的解决方案进行修正
             write_file_with_blank(fp_xtfs, father_index_table_blocknr * BLOCK_SIZE, (char*)index_table, CATALOG_TABLE_SIZE * sizeof(CATALOG));
             // 进行迭代
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // 全部生成完毕，将 inode 表和 block map 写入文件系统
+    // 全部生成完毕，将 inode 表和 block map 写入文件系统分区
     write_first_two_blocks(fp_xtfs, inode_table, block_map);
 
     fclose(fp_xtfs);

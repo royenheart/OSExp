@@ -1,8 +1,8 @@
 /**
  * @file format.c
  * @author RoyenHeart, ovovcast, MDND, bow
- * @brief 格式化镜像、分区文件系统
- * @version 0.1
+ * @brief 格式化分区、镜像为 XTFS 文件系统
+ * @version 1.0.0
  * @date 2022-10-25
  *
  * @copyright Copyright (c) 2022
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 
     strncpy(fs_name, argv[1], MAX_FS_NAME_LENGTH);
 
-    // 以可读可写模式打开xtfs.img文件
+    // 打开需要格式化的文件系统分区
     fp = fopen(fs_name, "r+");
     // 覆盖之前的 inode 表和数据块位图
     fwrite(blank, 1, BLOCK_SIZE, fp);

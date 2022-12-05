@@ -1,13 +1,25 @@
+/**
+ * @file test_io.cpp
+ * @author RoyenHeart
+ * @brief 测试 io 功能
+ * @version 0.1
+ * @date 2022-12-05
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
 #include <gtest/gtest.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
 extern "C" {
 #include "../io.h"
 }
 
 class IO_BASIC: public testing::Test {
-protected:
+  protected:
     FILE* file = NULL;
     char* data = NULL;
     const size_t SIZE = 4096;

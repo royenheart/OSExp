@@ -1,8 +1,8 @@
 /**
  * @file xtfs_limits.h
- * @author
- * @brief xtfs文件系统限制
- * @version 0.1
+ * @author RoyenHeart
+ * @brief XTFS 文件系统限制
+ * @version 1.0.0
  * @date 2022-11-13
  *
  * @copyright Copyright (c) 2022

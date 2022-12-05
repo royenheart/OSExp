@@ -1,8 +1,8 @@
 /**
  * @file xtfs_check.c
- * @author
- * @brief 文件系统相关检查（实现）
- * @version 0.1
+ * @author RoyenHeart
+ * @brief XTFS 文件系统分区相关检查（实现）
+ * @version 1.0.0
  * @date 2022-11-14
  *
  * @copyright Copyright (c) 2022

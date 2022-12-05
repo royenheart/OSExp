@@ -10,13 +10,14 @@ option(FEATURE_JEMALLOC "Whether use jemalloc library to provide memory allocate
 option(TEST_BUILD "Build GTEST" ON)
 option(BUILD_DOC "Build documentation" ON)
 
-include_directories(src)
+include_directories(src src/lex)
 
 add_library(xtfs_basic SHARED 
     src/xtfs_manage.c 
     src/xtfs_struct.c
     src/xtfs_check.c
     src/io.c
+    src/lex/lex.yy.c
 )
 
 # Build Doxygen
@@ -45,13 +46,16 @@ if (TEST_BUILD)
 
         add_executable(test_file_type src/gtests/test_file_type.cpp)
         add_executable(test_io src/gtests/test_io.cpp)
+        add_executable(test_folder_lex src/gtests/test_folder_lex.cpp)
 
         target_link_libraries(test_io PUBLIC xtfs_basic ${GTEST_BOTH_LIBRARIES} pthread)
         target_link_libraries(test_file_type PUBLIC xtfs_basic ${GTEST_BOTH_LIBRARIES} pthread)
+        target_link_libraries(test_folder_lex PUBLIC xtfs_basic ${GTEST_BOTH_LIBRARIES} pthread)
 
         enable_testing()
         add_test(NAME IO_BASIC_TEST COMMAND test_io)
         add_test(NAME FILE_TYPE_TEST COMMAND test_file_type)
+        add_test(NAME FOLDER_LEX_TEST COMMAND test_folder_lex)
     else (GTest_FOUND)
         message(STATUS "gtest lib not found")
     endif(GTest_FOUND)
@@ -64,9 +68,10 @@ link_libraries(xtfs_basic)
 add_executable(format src/format.c)
 add_executable(copy src/copy.c)
 add_executable(read src/read.c)
-add_executable(rename src/rename.c)
+add_executable(mv src/mv.c)
 add_executable(delete src/delete.c)
 add_executable(rewrite src/rewrite.c)
+add_executable(mkdir src/mkdir.c)
 add_executable(cipher src/features/cipher.c)
 add_executable(decrypt src/features/decrypt.c)
 add_executable(HuffmanUnzip src/features/HuffmanUnzip.cpp)
@@ -78,5 +83,5 @@ file(COPY tests/hello.cpp DESTINATION tests)
 file(COPY tests/hello.md DESTINATION tests)
 file(COPY tests/short_hello.md DESTINATION tests)
 file(COPY tests/long_hello.md DESTINATION tests)
+file(COPY tests/bigFile.md DESTINATION tests)
 file(COPY tests/gtest.img DESTINATION gtests)
-file(COPY tests/testbench.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR} FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)

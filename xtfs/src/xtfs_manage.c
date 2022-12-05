@@ -21,10 +21,6 @@
 #include <jemalloc/jemalloc.h>
 #endif
 
-// void** pool = NULL;
-// int pool_top = -1;
-// specs_copy *specs_params = NULL;
-
 void* pool[MAX_POOL_LENGTH];
 int pool_top = -1;
 specs_copy specs_params;
@@ -42,9 +38,6 @@ void* xtfs_free_pool(void) {
 }
 
 void* xtfs_malloc(size_t size) {
-#ifdef DEBUG
-    assert(pool);
-#endif
     if (pool == NULL) {
         printf("XTFS_MANAGE NOT INIT!\n");
         xtfs_exit(EXIT_FAILURE);
@@ -105,6 +98,16 @@ short write_index_table(FILE* fp_xtfs, BLOCK_MAP_STRUC* block_map, BLOCK_MAP_TAB
     index_table_blocknr = get_block(block_map, lowbit);
     write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
     return index_table_blocknr;
+}
+
+void read_index_table(FILE* fp_xtfs, INDEX_TABLE_STRUC *index_table, int offset) {
+    memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
+    read_file(fp_xtfs, offset, (char*)index_table, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
+}
+
+void read_dir_index_table(FILE* fp_xtfs, CATALOG *index_table, int offset) {
+    memset(index_table, 0, CATALOG_TABLE_SIZE * sizeof(CATALOG));
+    read_file(fp_xtfs, offset, (char*)index_table, CATALOG_TABLE_SIZE * sizeof(CATALOG));
 }
 
 int select_spec_funcs(char *buffer, int file_type) {
@@ -233,8 +236,7 @@ void set_block_map(int flag, short blocknr, BLOCK_MAP_STRUC* block_map) {
     }
 }
 
-int find_inode_index_table(char* filename, struct inode* inode_table) {
-    // 遍历inode_table数组，找到与文件名对应的inode
+int find_inode_table(char* filename, struct inode* inode_table) {
     int i;
     for (i = 0; i < NR_INODE; i++) {
         if (inode_table[i].type == NO_FILE) {
@@ -247,19 +249,38 @@ int find_inode_index_table(char* filename, struct inode* inode_table) {
     return NOT_FOUND;
 }
 
-int get_empty_inode(struct inode* inode_table, char* filename, char type) {
+int find_dir_index_table(char* filename, CATALOG* index_table, int type) {
+    int i;
+    for (i = 0; i < CATALOG_TABLE_DATA_SIZE; i++) {
+        if (strcmp(index_table[i].filename, filename) == 0 && index_table[i].type == type) {
+            return i;
+        }
+    }
+    if (i == CATALOG_TABLE_DATA_SIZE) {
+        return NOT_FOUND;
+    }
+}
+
+int get_root_inode(struct inode* inode_table) {
+    int i;
+    for (i = 0; i < NR_INODE; i++) {
+        if (strcmp(inode_table[i].filename, "/") == 0 && inode_table[i].type == DIR_FILE) {
+            return i;
+        }
+    }
+    return NOT_FOUND;
+}
+
+int get_empty_inode(struct inode* inode_table, char* filename, int type) {
     int i;
 
     // 遍历inode表
     for (i = 0; i < NR_INODE; i++) {
         if (inode_table[i].type == NO_FILE) {
+            // inode表只有一种数据结构进行操作，且类型是判断是否存在文件的标志，不须担心之前的数据影响
             inode_table[i].type = type;
-            strcpy(inode_table[i].filename, filename);
+            strncpy(inode_table[i].filename, filename, MAX_FILE_NAME_LENGTH);
             break;
-        } else if (strcmp(inode_table[i].filename, filename) == 0) {
-            // 需要执行覆写程序
-            printf("File Exits!.\n");
-            xtfs_exit(EXIT_FAILURE);
         }
     }
 
@@ -269,4 +290,33 @@ int get_empty_inode(struct inode* inode_table, char* filename, char type) {
     }
 
     return i;
+}
+
+int get_empty_dir_index(CATALOG *index_table, char *filename, int type, int pos) {
+    int i;
+    int found = 0;
+    int ret;
+
+    // 遍历 index_table
+    for (i = 0; i < CATALOG_TABLE_DATA_SIZE; i++) {
+        if (!found && index_table[i].type == NO_FILE) {
+            ret = i;
+            found = 1;
+        } else if (is_same_type_class(index_table[i].type, type) && strcmp(index_table[i].filename, filename) == 0) {
+            // 可能需要执行覆写？
+            printf("File Exits!.\n");
+            xtfs_exit(EXIT_FAILURE);
+        }
+    }
+
+    if (i == NR_INODE) {
+        printf("index_table is empty.\n");
+        xtfs_exit(EXIT_FAILURE);
+    }
+
+    index_table[ret].type = type;
+    strncpy(index_table[ret].filename, filename, MAX_FILE_NAME_LENGTH);
+    index_table[ret].pos = pos;
+
+    return ret;
 }

@@ -1,6 +1,6 @@
 /**
  * @file copy.c
- * @author RoyenHeart, Ruoxuan Wang, MDND, bow
+ * @author RoyenHeart, ovovcast, MDND, bow
  * @brief 基础文件系统文件拷贝
  * @version 0.1
  * @date 2022-10-25
@@ -16,6 +16,7 @@
 #include "xtfs_struct.h"
 #include "xtfs_manage.h"
 #include "xtfs_check.h"
+#include "lex/folder_lex.h"
 #include "io.h"
 
 // 读取的inode表
@@ -25,92 +26,87 @@ BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
 // 数据块位图lowbit表
 BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
 // 文件系统文件名
-char* fs_name = NULL;
+char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
 // 文件系统文件索引
-FILE* fp_xtfs = NULL;
-
-// /**
-//  * @brief 打开文件并将内容拷贝到数据块中，调用get_block和write_block
-//  *
-//  * @param filename 文件名
-//  * @param index_table 文件数据块索引表
-//  * @return int filesize 拷贝的文件大小
-//  */
-// int copy_blocks(char* filename, short* index_table) {
-//     FILE* fp = NULL;
-//     int filesize;
-//     int i, need;
-//     int blocknr;
-//     char buffer[BLOCK_SIZE];
-
-//     fp = fopen(filename, "r");
-//     fseek(fp, 0, SEEK_END);
-//     filesize = ftell(fp);
-//     fseek(fp, 0, SEEK_SET);
-//     memset((char*)index_table, 0, BLOCK_SIZE);
-//     // 将整个文件读入到文件系统中，并更新其数据块索引；
-//     // 先获取所有可行块，避免空间不够导致的额外开销
-//     need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
-//     short* blocknr_s = get_all_block(need, block_map, lowbit);
-//     for (i = 0; i < need; i++) {
-//         blocknr = blocknr_s[i];
-//         // 读取文件内容，以每个元素1个字节读入到512大小的字节数组buffer中
-//         // 后续读取会以上次读取停留的指针继续
-//         memset(buffer, 0, BLOCK_SIZE);
-//         fread(buffer, 1, BLOCK_SIZE, fp);
-//         write_file(fp_xtfs, blocknr * BLOCK_SIZE, buffer, BLOCK_SIZE);
-//         index_table[i] = blocknr;
-//     }
-//     fclose(fp);
-//     return filesize;
-// }
+FILE *fp_xtfs;
 
 int main(int argc, char* argv[]) {
-    // INIT_XTFS_MANAGE
-    size_t filesize;
-    short index_table_blocknr;
-    // 文件的数据块索引表
-    // 数据块索引表用于记录文件在此文件系统中占用了哪些数据块，存放该文件占用的所有数据块的块号
-    // 块号即i * 8 + j
-    INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
-    char* filename;
-    unsigned char type;
+    char **dirnames = NULL;
+    int dir_num;
     int i;
+    // 目录信息
+    CATALOG dir_index_table[CATALOG_TABLE_SIZE];
+    // 文件信息
+    int inode_blocknr;
+    size_t filesize;
+    int type;
+    INDEX_TABLE_STRUC index_table_blocknr;
 
     // 初始化lowbit表
     for (i = 0; i < 8; i++) {
         lowbit[1 << i] = i;
     }
 
-    check_file_name(argv[1]);
-    check_fs_name(argv[3]);
+    dir_num = get_folders(argv[1], &dirnames);
 
-    // 获取待拷贝文件名和文件类型
-    filename = argv[1];
-    // 去除特定格式
+    if (dir_num == ERROR_PARSE) {
+        printf("copy failed, check the input file format!\n");
+        xtfs_exit(EXIT_FAILURE);
+    }
+
+    check_fs_name(argv[3]);
     type = get_file_type(atoi(argv[2]) & ~SPEC_TYPES);
-    fs_name = argv[3];
+    if (is_same_type_class(type, DIR_FILE) == 1) {
+        printf("Can't copy all folder right now!\n");
+        xtfs_exit(EXIT_FAILURE);
+    }
+
+    strncpy(fs_name, argv[3], MAX_FS_NAME_LENGTH);
 
     fp_xtfs = fopen(fs_name, "r+");
 
-    // 读取0号和1号inode表和数据块位图数据到进程管理的内存（数组），便于修改
-    // 全局变量：inode_table 和 block_map
+    // 读取0号和1号inode表和数据块位图数据到进程管理的内存（数组），便于修改和之后的写入
     read_first_two_blocks(fp_xtfs, inode_table, block_map);
+
+    inode_blocknr = get_root_inode(inode_table);
+    if (inode_blocknr == NOT_FOUND) {
+        printf("Root has been destroyed! This file system may not be in secure state!\n"); 
+        fclose(fp_xtfs);
+        xtfs_exit(EXIT_FAILURE);
+    }
+    index_table_blocknr = inode_table[inode_blocknr].index_table_blocknr;
+    read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
+
+    for (i = 0; i < dir_num; i++) {
+        int child_in_father_index;
+        child_in_father_index = find_dir_index_table(dirnames[i], dir_index_table, DIR_FILE);
+        if (child_in_father_index == NOT_FOUND) {
+            printf("No such dir to copy!\n");
+            fclose(fp_xtfs);
+            xtfs_exit(EXIT_FAILURE);
+        } else {
+            int curr_inode = dir_index_table[child_in_father_index].pos;
+            index_table_blocknr = inode_table[curr_inode].index_table_blocknr;
+            read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
+            inode_blocknr = curr_inode;
+        }
+    }
+
     // 在inode表中申请一个空闲inode，存放文件的inode信息
-    // 若以存在相同文件，调用rewrite程序
-    i = get_empty_inode(inode_table, filename, type);
+    inode_blocknr = get_empty_inode(inode_table, dirnames[dir_num], type);
+    // 在目录中添加对应的表项，并重新写回文件系统
+    get_empty_dir_index(dir_index_table, dirnames[dir_num], type, inode_blocknr);
+    write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)dir_index_table, CATALOG_TABLE_SIZE * sizeof(CATALOG));
+
     // 将文件中内容拷贝到xtfs文件系统中
-    FILE *fp = fopen(filename, "r");
+    FILE *fp = fopen(argv[1], "r");
     filesize = read_file_size(fp);
     normal_params_load(fp);
     index_table_blocknr = copy_blocks(filesize, type, block_map, lowbit, fp_xtfs);
     fclose(fp);
-    // filesize = copy_blocks(filename, index_table);
-    // 将数据块索引表拷贝到xtfs文件系统中
-    // index_table_blocknr = write_index_table(fp_xtfs, block_map, lowbit, index_table);
     // 文件复制准备完全后将数据同步至inode表
-    inode_table[i].size = filesize;
-    inode_table[i].index_table_blocknr = index_table_blocknr;
+    inode_table[inode_blocknr].size = filesize;
+    inode_table[inode_blocknr].index_table_blocknr = index_table_blocknr;
     // 将0号和1号数据块内容写回并关闭文件系统文件
     write_first_two_blocks(fp_xtfs, inode_table, block_map);
 

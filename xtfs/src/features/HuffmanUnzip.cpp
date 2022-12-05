@@ -18,26 +18,25 @@ extern "C" {
 #include "../xtfs_struct.h"
 #include "../xtfs_manage.h"
 #include "../xtfs_check.h"
+#include "../lex/folder_lex.h"
 #include "../io.h"
 }
 
-char* fs_name = NULL;
+char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
 FILE* fp_xtfs = NULL;
 struct inode inode_table[NR_INODE];
 
-// Huffman Unzip Need
 int num_char, t_stack_size, filesize;
 string tree_stack;
 string file;
 int nownode, nodecnt = 0;
 string io_file;
-char buffer[1000005];
-int ls[1000005], rs[1000005], fa[1000005], val[1000005];
-int alpha[1000005];
+char buffer[10000005];
+int ls[10000005], rs[10000005], fa[10000005], val[10000005];
+int alpha[10000005];
 string alpha_list;
 int oz_num;
 string s = "";
-// Huffman Unzip Need
 
 inline void build() {
     nownode = ++nodecnt;
@@ -98,42 +97,67 @@ void dfs(int x) {
 }
 
 int main(int argc, char* argv[]) {
-    char filename[MAX_FILE_NAME_LENGTH] = {0};
+    char **dirnames = NULL;
+    int dir_num;
+    int i, j, k;
+    // 目录所需数据
+    CATALOG dir_index_table[CATALOG_TABLE_SIZE];
+    // 文件所需数据
+    int inode_blocknr;
+    int type;
     INDEX_TABLE_STRUC index_table_blocknr;
     INDEX_TABLE_STRUC index_table[INDEX_TABLE_SIZE] = {0};
     INDEX_TABLE_STRUC exist;
-    int i, j, k;
 
-    check_file_name(argv[1]);
-    check_fs_name(argv[2]);
+    check_fs_name(argv[3]);
 
-    strncpy(filename, argv[1], MAX_FILE_NAME_LENGTH);
-    fs_name = argv[2];
+    dir_num = get_folders(argv[1], &dirnames);
+
+    if (dir_num == ERROR_PARSE) {
+        printf("unzip failed, check the input file format!\n");
+        xtfs_exit(EXIT_FAILURE);
+    }
+
+    type = get_file_type(atoi(argv[2]));
+    if (is_same_type_class(type, DIR_FILE) == 1) {
+        printf("Can't unzip a dir!\n");
+        xtfs_exit(EXIT_FAILURE);
+    }
+    strncpy(fs_name, argv[3], MAX_FS_NAME_LENGTH);
     fp_xtfs = fopen(fs_name, "r+");
 
     read_file(fp_xtfs, 0, (char*)inode_table, BLOCK_SIZE);
 
-    // for (i = 0; i < NR_INODE; i++) {
-    //     if (strcmp(inode_table[i].filename, filename) == 0 && inode_table[i].type != NO_FILE) {
-    //         long int blocknr = inode_table[i].index_table_blocknr;
-    //         filesize = inode_table[i].size;
-    //         read_file(fp_xtfs, blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
-    //         break;
-    //     }
-    // }
-
-    int inode_index_table = find_inode_index_table(filename, inode_table);
-    if (inode_index_table == NOT_FOUND) {
-        // 返回-1表示文件不存在
-        printf("The file %s does not exist!\n", filename); 
+    inode_blocknr = get_root_inode(inode_table);
+    if (inode_blocknr == NOT_FOUND) {
+        printf("Root has been destroyed! This file system may not be in secure state!\n"); 
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
-    // 得到第一个数据块索引表
-    index_table_blocknr = inode_table[inode_index_table].index_table_blocknr;
-    read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+    index_table_blocknr = inode_table[inode_blocknr].index_table_blocknr;
+    read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
+
+    for (i = 0; i <= dir_num; i++) {
+        int child_in_father_index;
+        child_in_father_index = find_dir_index_table(dirnames[i], dir_index_table, (i < dir_num)?DIR_FILE:type | ZIP);
+        if (child_in_father_index == NOT_FOUND) {
+            printf("No such file %s with type %d!\n", argv[1], type);
+            fclose(fp_xtfs);
+            xtfs_exit(EXIT_FAILURE);
+        } else {
+            int curr_inode = dir_index_table[child_in_father_index].pos;
+            index_table_blocknr = inode_table[curr_inode].index_table_blocknr;
+            if (i < dir_num) {
+                read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
+            } else {
+                read_index_table(fp_xtfs, index_table, index_table_blocknr * BLOCK_SIZE);
+            }
+            inode_blocknr = curr_inode;
+        }
+    }
+
     // 读取文件大小
-    filesize = inode_table[inode_index_table].size;
+    filesize = inode_table[inode_blocknr].size;
     // 数据块内容已经存储的数据块
     exist = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
@@ -142,10 +166,9 @@ int main(int argc, char* argv[]) {
         char data[BLOCK_SIZE] = {0};
         // 检查 index_table ，得到应该读取的正确位置，否则转换到下一个
         INDEX_TABLE_STRUC index = i;
-        if ((index + 1) % (INDEX_TABLE_DATA_SIZE + 1) == 0) {
+        if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             index_table_blocknr = index_table[INDEX_TABLE_DATA_SIZE];
-            memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
-            read_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            read_index_table(fp_xtfs, index_table, index_table_blocknr * BLOCK_SIZE);
             index = 0;
         } else {
             index = index % INDEX_TABLE_DATA_SIZE;
@@ -168,19 +191,20 @@ int main(int argc, char* argv[]) {
         filesize -= BLOCK_SIZE;
     }
 
-    for (int i = 0; i <= 15; i++) {
-        if (io_file[15 - i] == '1') {
+    // 存文本长度，存了一个int
+    for (int i = 0; i <= 31; i++) {
+        if (io_file[31 - i] == '1') {
             num_char += (1 << i);
         }
-        if (io_file[31 - i] == '1') {
+        if (io_file[63 - i] == '1') {
             t_stack_size += (1 << i);
         }
-        if (io_file[47 - i] == '1') {
+        if (io_file[95 - i] == '1') {
             oz_num += (1 << i);
         }
     }
 
-    io_file.erase(0, 48);
+    io_file.erase(0, 96);
     tree_stack = " " + io_file.substr(0, t_stack_size);
     io_file.erase(0, t_stack_size);
     alpha_list = " " + io_file.substr(0, num_char * 8);

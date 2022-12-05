@@ -10,15 +10,23 @@
  */
 
 #include "io.h"
+#include "xtfs_limits.h"
 
-size_t write_file(FILE* fp, long int offset, char* buffer, size_t size) {
+size_t write_file(FILE* fp, long long offset, char* buffer, size_t size) {
     size_t ret1 = fseek(fp, offset, SEEK_SET);
     size_t ret2 = fwrite(buffer, 1, size, fp);
     ret2 = (ret2 == size) ? 0 : 1;
     return ret1 | ret2;
 }
 
-size_t read_file(FILE* fp, long int offset, char* buffer, size_t size) {
+size_t write_file_with_blank(FILE* fp, long long offset, char* buffer, size_t size) {
+    char blank[BLOCK_SIZE] = {0};
+    size_t ret1 = write_file(fp, offset, blank, size);
+    size_t ret2 = write_file(fp, offset, buffer, size);
+    return ret1 | ret2;
+}
+
+size_t read_file(FILE* fp, long long offset, char* buffer, size_t size) {
     size_t ret1 = fseek(fp, offset, SEEK_SET);
     size_t ret2 = fread(buffer, 1, size, fp);
     ret2 = (ret2 == size) ? 0 : 1;

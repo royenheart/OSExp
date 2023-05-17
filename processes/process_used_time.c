@@ -6,16 +6,11 @@
 #include <time.h>
 #include <unistd.h>
 #ifdef STRESS
-#include <cblas.h>
+#include "stress_test.h"
 #endif
 
 // 声明时间打印输出的函数
 void time_print(char *, clock_t);
-
-#ifdef STRESS
-// 计算密集型函数
-void matrix_cal(int, int, int);
-#endif
 
 int main(int argc, char *argv[]) {
     // clock_t 表示进程所用 CPU 时间，单位是时钟周期，这里声明开始和结束时使用的时钟周期，用于表示进程使用的真实时间
@@ -81,27 +76,3 @@ void time_print(char *str, clock_t time) {
     // 根据每秒时钟数和运行时钟数算出精确经历的秒数
     printf("%s: %6.2f secs\n", str, (float)time/tps);
 }
-
-#ifdef STRESS
-void matrix_cal(int m, int n, int k) {
-    double *A = NULL, *B = NULL, *C= NULL;
-
-    A = (double*)malloc(m * k * sizeof(double));
-    B = (double*)malloc(k * n * sizeof(double));
-    C = (double*)malloc(m * n * sizeof(double));
-
-    for (int i = 0; i < m * k; i++) {
-        A[i] = (double) rand() / (double) RAND_MAX;
-    }
-
-    for (int i = 0; i < k * n; i++) {
-        B[i] = (double) rand() / (double) RAND_MAX;
-    }
-
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1.0, A, k, B, n, 0.0, C, n);
-
-    free(A);
-    free(B);
-    free(C);
-}
-#endif

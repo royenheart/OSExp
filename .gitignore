@@ -42,3 +42,9 @@ build
 
 # AStyle
 *.orig
+
+# build files
+build
+
+# logs
+logs

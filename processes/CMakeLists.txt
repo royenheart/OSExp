@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
+
 find_package(OpenBLAS REQUIRED)
 if (NOT OpenBLAS_FOUND)
     message(WARNING "openblas not found, will not compile some programs")
@@ -44,3 +47,4 @@ add_executable(pipe_test3 pipe_test3.c)
 add_executable(pipe_processes_connect pipe_processes_connect.c)
 add_executable(pipe_write_p pipe_write_p.c)
 add_executable(pipe_read_p pipe_read_p.c)
+add_executable(page_replace_algo_tests page_replace_algo_tests.cpp)

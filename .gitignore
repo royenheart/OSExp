@@ -30,3 +30,9 @@
 
 # vscode
 .vscode
+
+# build files
+build
+
+# logs
+logs

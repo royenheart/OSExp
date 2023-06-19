@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
-find_package(OpenBLAS REQUIRED)
+find_package(OpenBLAS QUIET)
 if (NOT OpenBLAS_FOUND)
     message(WARNING "openblas not found, will not compile some programs")
 else()
@@ -19,6 +19,16 @@ else()
     target_include_directories(stress_mem PRIVATE ${OpenBLAS_INCLUDE_DIRS})
     target_link_libraries(stress_mem ${OpenBLAS_LIBRARIES})
 endif()
+
+# set(Boost_USE_RELEASE_LIBS ON)
+# find_package(Boost 1.82 QUIET COMPONENTS serialization)
+# if (NOT Boost_FOUND)
+#     message(WARNING "boost not found, will not compile some programs")
+# else()
+#     add_executable(fs_sim fs_sim.cpp)
+#     target_include_directories(fs_sim PRIVATE Boost::headers)
+#     target_link_libraries(fs_sim Boost::serialization)
+# endif()
 
 project(processes)
 
@@ -49,3 +59,4 @@ add_executable(pipe_write_p pipe_write_p.c)
 add_executable(pipe_read_p pipe_read_p.c)
 add_executable(page_replace_algo_tests page_replace_algo_tests.cpp)
 add_executable(cp cp.c)
+add_executable(fs_sim fs_sim.cpp)

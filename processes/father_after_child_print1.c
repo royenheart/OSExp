@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 
 int main(int argc, char* argv[]) {
     pid_t pid = fork();

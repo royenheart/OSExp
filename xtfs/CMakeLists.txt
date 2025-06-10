@@ -20,14 +20,24 @@ add_library(xtfs_basic SHARED
     src/lex/lex.yy.c
 )
 
+execute_process(
+  COMMAND dot -V
+  RESULT_VARIABLE dot_result
+  OUTPUT_VARIABLE dot_output
+  ERROR_VARIABLE dot_error
+)
+
 # Build Doxygen
-if (BUILD_DOC)
+if (BUILD_DOC AND (dot_result EQUAL 0))
     message(STATUS "Generate doxygen docs")
     include(${CMAKE_CURRENT_LIST_DIR}/cmake/build_doxygen.cmake)
     build_doxygen()
-else (BUILD_DOC)
-    message(STATUS "Not generate doxygen docs")
-endif (BUILD_DOC)
+elseif(NOT dot_result EQUAL 0)
+    message(WARNING "Doxygen docs generation failed due to lack of graphviz: ${dot_error}")
+    message(WARNING "Install graphviz you can: sudo apt install -y graphviz / sudo dnf install -y graphviz")
+else()
+    message(WARNING "Doxygen docs generation disabled")
+endif()
 
 # Jemalloc
 if (FEATURE_JEMALLOC)

@@ -15,14 +15,15 @@
  * @brief 检查进行操作的文件名称
  *
  * @param name 需要操作的文件名称
- * @deprecated 文件名称的格式已经由 lex 正则表达式保证，此函数在已进行 lex 正则表达式匹配的情况下为冗余函数。
+ * @deprecated 文件名称的格式已经由 lex 正则表达式保证，此函数在已进行 lex
+ * 正则表达式匹配的情况下为冗余函数。
  * @see src/lex/folder_name.l
  */
-void check_file_name(const char* name);
+void check_file_name(const char *name);
 
 /**
  * @brief 检查需要打开的文件系统分区名称是否符合要求
  *
  * @param name 需要打开的文件系统分区名称
  */
-void check_fs_name(const char* name);
+void check_fs_name(const char *name);

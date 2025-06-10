@@ -1,7 +1,8 @@
-#include <cstdio>
-#include <iostream>
 #include <Windows.h>
 #include <winbase.h>
+
+#include <cstdio>
+#include <iostream>
 
 void SubThread(void) {
     int i;
@@ -11,11 +12,12 @@ void SubThread(void) {
     }
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     std::cout << "Create Thread" << std::endl;
     DWORD IDThread;
     HANDLE hThread;
-    hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) SubThread, NULL, 0, &IDThread);
+    hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)SubThread, NULL, 0,
+                           &IDThread);
     if (hThread == NULL) {
         std::cout << "Create Thread Error" << std::endl;
     }

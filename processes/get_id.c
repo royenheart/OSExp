@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     printf("PID: %d\n", getpid());
     printf("PPID: %d\n", getppid());
     printf("RUID: %d\n", getuid());

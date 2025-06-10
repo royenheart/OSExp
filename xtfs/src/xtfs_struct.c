@@ -10,9 +10,11 @@
  */
 
 #include "xtfs_struct.h"
-#include "xtfs_manage.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "xtfs_manage.h"
 
 int get_file_type(int i) {
     // 去除特定格式

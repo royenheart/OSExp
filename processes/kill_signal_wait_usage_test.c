@@ -1,16 +1,16 @@
 /*  usage of kill,signal,wait  */
-#include <unistd.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
+#include <unistd.h>
 
 int flag;
 int ww;
 
 void stop();
-void check_status(const char* who, int w, int status) {
+void check_status(const char *who, int w, int status) {
     if (w == -1) {
         perror("waitpid");
         exit(-1);
@@ -18,17 +18,21 @@ void check_status(const char* who, int w, int status) {
     if (WIFEXITED(status)) {
         printf("%s exited with status: %d\n", who, WEXITSTATUS(status));
     } else if (WIFSIGNALED(status)) {
-        printf("%s pause due to signal, signal code is: %d\n", who, WTERMSIG(status));
+        printf("%s pause due to signal, signal code is: %d\n", who,
+               WTERMSIG(status));
     } else if (WIFSTOPPED(status)) {
-        printf("%s pause because of pause signal code: %d\n", who, WSTOPSIG(status));
+        printf("%s pause because of pause signal code: %d\n", who,
+               WSTOPSIG(status));
     }
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     int pid1, pid2;
-    while ((pid1 = fork()) == -1);
-    if ( pid1 > 0 ){
-        while ((pid2 = fork()) == -1);
+    while ((pid1 = fork()) == -1)
+        ;
+    if (pid1 > 0) {
+        while ((pid2 = fork()) == -1)
+            ;
         if (pid2 > 0) {
             signal(2, stop);
             flag = 1;

@@ -9,19 +9,20 @@
  *
  */
 
+#include <stdio.h>
+
 #include "string.h"
 #include "xtfs_limits.h"
 #include "xtfs_manage.h"
-#include <stdio.h>
 
-void check_file_name(const char* name) {
+void check_file_name(const char *name) {
     if (strlen(name) > MAX_FILE_NAME_LENGTH) {
         printf("File name too long!: %s\n", name);
         xtfs_exit(EXIT_FAILURE);
     }
 }
 
-void check_fs_name(const char* name) {
+void check_fs_name(const char *name) {
     if (strlen(name) > MAX_FS_NAME_LENGTH) {
         printf("XTFS name too long!: %s\n", name);
         xtfs_exit(EXIT_FAILURE);

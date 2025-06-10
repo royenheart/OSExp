@@ -1,13 +1,13 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/times.h>
-#include <sys/resource.h>
-#include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <time.h>
+#include <unistd.h>
 #ifdef STRESS
 #include "stress_test.h"
 #endif
@@ -17,7 +17,7 @@
 // 声明时间打印输出的函数
 void time_print(char *, clock_t);
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     pid_t pid;
     int status;
     clock_t start, end;
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     if (pid == -1) {
         perror("fork failed!\n");
         exit(EXIT_FAILURE);
-    } else if (pid == 0) { 
+    } else if (pid == 0) {
         // 子进程
         // 打印当前优先级
         errno = 0;
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
         printf("child priority = %d\n", me_pri);
-        #ifndef STRESS
+#ifndef STRESS
         char arr[N][N] = {0};
         int k = 0;
         for (int i = 0; i < N; i++) {
@@ -60,10 +60,10 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-        #else
+#else
         // 使用计算密集型代码
         matrix_cal(10000, 8000, 8000);
-        #endif
+#endif
     } else {
         // 父进程
         // 设置子进程优先级
@@ -87,16 +87,20 @@ int main(int argc, char* argv[]) {
             time_print("\tuser CPU", t_end.tms_cutime);
             time_print("\tsys CPU", t_end.tms_cstime);
         } else if (WIFSIGNALED(status)) {
-            printf("child pause due to signal, signal code is: %d\n", WTERMSIG(status));
+            printf("child pause due to signal, signal code is: %d\n",
+                   WTERMSIG(status));
         } else if (WIFSTOPPED(status)) {
-            printf("child pause because of pause signal code: %d\n", WSTOPSIG(status));
+            printf("child pause because of pause signal code: %d\n",
+                   WSTOPSIG(status));
         }
     }
 }
 
 void time_print(char *str, clock_t time) {
-    // 获取系统每秒所包含的 CPU 时钟数（时钟滴答数，即一秒内有多少个时钟周期），用 sysconf 函数获取符合实际。
+    // 获取系统每秒所包含的 CPU
+    // 时钟数（时钟滴答数，即一秒内有多少个时钟周期），用 sysconf
+    // 函数获取符合实际。
     long tps = sysconf(_SC_CLK_TCK);
     // 根据每秒时钟数和运行时钟数算出精确经历的秒数
-    printf("%s: %6.2f secs\n", str, (float)time/tps);
+    printf("%s: %6.2f secs\n", str, (float)time / tps);
 }

@@ -1,19 +1,21 @@
 /*  usage of kill,signal,wait  */
-#include <unistd.h>
+#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
-#include <stdlib.h>
+#include <unistd.h>
 
 int flag;
 void stop();
 int main(int argc, char *argv[]) {
     int pid1, pid2;
     signal(3, stop);
-    while ((pid1 = fork()) == -1);
+    while ((pid1 = fork()) == -1)
+        ;
     if (pid1 > 0) {
-        while ((pid2 = fork()) == -1);
+        while ((pid2 = fork()) == -1)
+            ;
         if (pid2 > 0) {
             flag = 1;
             sleep(5);
@@ -37,6 +39,4 @@ int main(int argc, char *argv[]) {
     }
 }
 
-void stop() {
-    flag = 0;
-}
+void stop() { flag = 0; }

@@ -1,12 +1,12 @@
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <errno.h>
 #include <sys/epoll.h>
-#include <signal.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
+#include <unistd.h>
 
 #define SERVER_PORT 8080
 #define MAX_EVENTS 10
@@ -34,22 +34,29 @@ int set_nonblocking(int fd) {
     return 0;
 }
 
-// 非阻塞 + epoll 的处理顺序（时序），每次运行 epoll 事件队列内的排布可能会有所不同，需要仔细设置状态。例如 client 同样执行三次出现三种不同的结果：
-// 1. client epoll 发现写缓冲好了触发一次，但此时 server 可能还没触发或没执行到 recv / read 操作，导致两次发送的数据都放在缓冲区中。
-// royenheart@RoyenHeartFedora:~/gits/OSExp/build/epoll_test$ ./epoll_client 
+// 非阻塞 + epoll 的处理顺序（时序），每次运行 epoll
+// 事件队列内的排布可能会有所不同，需要仔细设置状态。例如 client
+// 同样执行三次出现三种不同的结果：
+// 1. client epoll 发现写缓冲好了触发一次，但此时 server 可能还没触发或没执行到
+// recv / read 操作，导致两次发送的数据都放在缓冲区中。
+// royenheart@RoyenHeartFedora:~/gits/OSExp/build/epoll_test$ ./epoll_client
 // Sent message to server: Hello, server!
 // Sent message to server in loop 2: Another!
 // Received from server in loop 3: Hello, server!Another!
 // ^C
-// 2. 正常顺序，发送后 server 接收，返回，client 被触发，同时也发现写缓冲区就位。
-// royenheart@RoyenHeartFedora:~/gits/OSExp/build/epoll_test$ ./epoll_client 
+// 2. 正常顺序，发送后 server 接收，返回，client
+// 被触发，同时也发现写缓冲区就位。
+// royenheart@RoyenHeartFedora:~/gits/OSExp/build/epoll_test$ ./epoll_client
 // Sent message to server: Hello, server!
 // Received from server in loop 2: Hello, server!
 // Sent message to server in loop 2: Another!
 // Received from server in loop 3: Another!
 // ^C
-// 3. 到第二次发送时（发现写缓冲好了），server 已经接受好了第一次的缓冲，但是还没到返回 write。第二次发送好了返回，于是接连传输了两次（触发了两次 client epoll），然后写缓冲准备就绪事件放入队列，在 loop4 被发送，loop5 回显。
-// royenheart@RoyenHeartFedora:~/gits/OSExp/build/epoll_test$ ./epoll_client 
+// 3. 到第二次发送时（发现写缓冲好了），server
+// 已经接受好了第一次的缓冲，但是还没到返回
+// write。第二次发送好了返回，于是接连传输了两次（触发了两次 client
+// epoll），然后写缓冲准备就绪事件放入队列，在 loop4 被发送，loop5 回显。
+// royenheart@RoyenHeartFedora:~/gits/OSExp/build/epoll_test$ ./epoll_client
 // Sent message to server: Hello, server!
 // Sent message to server in loop 2: Another!
 // Received from server in loop 3: Hello, server!
@@ -57,7 +64,7 @@ int set_nonblocking(int fd) {
 // Sent message to server in loop 4: Another!
 // Received from server in loop 5: Another!
 // ^C
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     struct sockaddr_in server_addr;
     struct epoll_event ev, events[MAX_EVENTS];
     char buffer[READ_SIZE];
@@ -82,7 +89,8 @@ int main(int argc, char* argv[]) {
     }
 
     // 连接服务器
-    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) ==
+        -1) {
         perror("connect");
         close(sockfd);
         exit(EXIT_FAILURE);
@@ -137,10 +145,12 @@ int main(int argc, char* argv[]) {
         for (i = 0; i < nfds; ++i) {
             if (events[i].events & EPOLLIN) {
                 // 处理服务器回显消息
-                ssize_t bytes_read = recv(events[i].data.fd, buffer, READ_SIZE - 1, 0);
+                ssize_t bytes_read =
+                    recv(events[i].data.fd, buffer, READ_SIZE - 1, 0);
                 if (bytes_read > 0) {
                     buffer[bytes_read] = '\0';
-                    printf("Received from server in loop %d: %s\n", loops, buffer);
+                    printf("Received from server in loop %d: %s\n", loops,
+                           buffer);
                 } else if (bytes_read == 0) {
                     // 服务器关闭连接
                     printf("Server closed connection\n");
@@ -161,7 +171,8 @@ int main(int argc, char* argv[]) {
                         close(epoll_fd);
                         exit(EXIT_FAILURE);
                     }
-                    printf("Sent message to server in loop %d: %s\n", loops, message);
+                    printf("Sent message to server in loop %d: %s\n", loops,
+                           message);
                 }
             }
         }

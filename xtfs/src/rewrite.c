@@ -13,12 +13,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "xtfs_manage.h"
-#include "xtfs_limits.h"
-#include "xtfs_struct.h"
-#include "xtfs_check.h"
+
 #include "io.h"
 #include "lex/folder_lex.h"
+#include "xtfs_check.h"
+#include "xtfs_limits.h"
+#include "xtfs_manage.h"
+#include "xtfs_struct.h"
+
 
 // 读取的inode表
 struct inode inode_table[NR_INODE];
@@ -29,13 +31,13 @@ BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
 // 文件系统分区文件
 char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
 // 文件系统分区文件索引
-FILE* fp_xtfs = NULL;
+FILE *fp_xtfs = NULL;
 
-int main(int argc, char* argv[]) {
-    FILE* fp = NULL;
+int main(int argc, char *argv[]) {
+    FILE *fp = NULL;
     size_t filesize;
     int inode_blocknr;
-    char** source_files = NULL, **rewrite_files = NULL;
+    char **source_files = NULL, **rewrite_files = NULL;
     CATALOG dir_index_table[CATALOG_TABLE_SIZE];
     int source_num, rewrite_num;
     int type;
@@ -73,16 +75,21 @@ int main(int argc, char* argv[]) {
     // 查找文件
     inode_blocknr = get_root_inode(inode_table);
     if (inode_blocknr == NOT_FOUND) {
-        printf("Root has been destroyed! This file system may not be in secure state!\n");
+        printf(
+            "Root has been destroyed! This file system may not be in secure "
+            "state!\n");
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
     index_table_blocknr = inode_table[inode_blocknr].index_table_blocknr;
-    read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
+    read_dir_index_table(fp_xtfs, dir_index_table,
+                         index_table_blocknr * BLOCK_SIZE);
 
     for (i = 0; i <= source_num; i++) {
         int child_in_father_index;
-        child_in_father_index = find_dir_index_table(source_files[i], dir_index_table, (i < source_num) ? DIR_FILE : type);
+        child_in_father_index =
+            find_dir_index_table(source_files[i], dir_index_table,
+                                 (i < source_num) ? DIR_FILE : type);
         if (child_in_father_index == NOT_FOUND) {
             printf("No such file %s with type %d!\n", argv[1], type);
             fclose(fp_xtfs);
@@ -91,9 +98,11 @@ int main(int argc, char* argv[]) {
             int curr_inode = dir_index_table[child_in_father_index].pos;
             index_table_blocknr = inode_table[curr_inode].index_table_blocknr;
             if (i < source_num) {
-                read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
+                read_dir_index_table(fp_xtfs, dir_index_table,
+                                     index_table_blocknr * BLOCK_SIZE);
             } else {
-                read_index_table(fp_xtfs, index_table, index_table_blocknr * BLOCK_SIZE);
+                read_index_table(fp_xtfs, index_table,
+                                 index_table_blocknr * BLOCK_SIZE);
             }
             inode_blocknr = curr_inode;
         }
@@ -109,15 +118,18 @@ int main(int argc, char* argv[]) {
     // 数据块内容需要的数据块
     need = (filesize + BLOCK_SIZE - 1) / BLOCK_SIZE;
     // 数据块索引表已经存储的数据块
-    index_table_exist = (exist + INDEX_TABLE_DATA_SIZE - 1) / INDEX_TABLE_DATA_SIZE;
+    index_table_exist =
+        (exist + INDEX_TABLE_DATA_SIZE - 1) / INDEX_TABLE_DATA_SIZE;
     // 数据块索引表需要的数据块
-    index_table_need = (need + INDEX_TABLE_DATA_SIZE - 1) / INDEX_TABLE_DATA_SIZE;
+    index_table_need =
+        (need + INDEX_TABLE_DATA_SIZE - 1) / INDEX_TABLE_DATA_SIZE;
 
     // 给数据块内容和数据块索引表分配新空间，若不足直接退出，不会再写下去
-    INDEX_TABLE_STRUC* blocknr_s = NULL;
-    INDEX_TABLE_STRUC* index_blocknr_s = NULL;
+    INDEX_TABLE_STRUC *blocknr_s = NULL;
+    INDEX_TABLE_STRUC *index_blocknr_s = NULL;
     blocknr_s = get_all_block(need - exist, block_map, lowbit);
-    index_blocknr_s = get_all_block(index_table_need - index_table_exist, block_map, lowbit);
+    index_blocknr_s =
+        get_all_block(index_table_need - index_table_exist, block_map, lowbit);
 
     // 能写尽写，将数据写入数据块
     for (i = 0; i < exist; i++) {
@@ -126,19 +138,23 @@ int main(int argc, char* argv[]) {
         if (size == 0) {
             break;
         }
-        // 检查 index_table ，得到应该写入的正确位置，若当前已满，需要先写入，再读出已存在的下一数据块
+        // 检查 index_table
+        // ，得到应该写入的正确位置，若当前已满，需要先写入，再读出已存在的下一数据块
         INDEX_TABLE_STRUC index = i;
         if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             INDEX_TABLE_STRUC temp = index_table[INDEX_TABLE_DATA_SIZE];
-            write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE,
+                       (char *)index_table, BLOCK_SIZE);
             index_table_blocknr = temp;
-            read_index_table(fp_xtfs, index_table, index_table_blocknr * BLOCK_SIZE);
+            read_index_table(fp_xtfs, index_table,
+                             index_table_blocknr * BLOCK_SIZE);
             index = 0;
         } else {
             index = index % INDEX_TABLE_DATA_SIZE;
         }
         // 无论怎么样，都将一整块数据输入，防止之前的文件内容干扰。
-        write_file(fp_xtfs, index_table[index] * BLOCK_SIZE, buffer, BLOCK_SIZE);
+        write_file(fp_xtfs, index_table[index] * BLOCK_SIZE, buffer,
+                   BLOCK_SIZE);
     }
 
     // 若还需要空间则继续输入
@@ -153,14 +169,17 @@ int main(int argc, char* argv[]) {
         }
         // 将文件内容写进下一个块
         write_file(fp_xtfs, next_blocknr * BLOCK_SIZE, buffer, BLOCK_SIZE);
-        // 检查 index_table ，得到应该写入的正确位置，若当前已满，需要先写入，再读出下一个数据块
+        // 检查 index_table
+        // ，得到应该写入的正确位置，若当前已满，需要先写入，再读出下一个数据块
         INDEX_TABLE_STRUC index = i + exist;
         if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             INDEX_TABLE_STRUC temp = index_blocknr_s[++index_index_b];
             index_table[INDEX_TABLE_DATA_SIZE] = temp;
-            write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE,
+                       (char *)index_table, BLOCK_SIZE);
             index_table_blocknr = temp;
-            memset(index_table, 0, INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
+            memset(index_table, 0,
+                   INDEX_TABLE_SIZE * sizeof(INDEX_TABLE_STRUC));
             index = 0;
         } else {
             index = index % INDEX_TABLE_DATA_SIZE;
@@ -171,15 +190,19 @@ int main(int argc, char* argv[]) {
 
     // 释放不需要的文件位置
     for (i = need; i < exist; i++) {
-        // 检查 index_table ，得到应该释放的正确位置，若当前已满，需要将其当前index_table最后的标识位置为0，更改 block_map 并写进，再读出下一个数据块索引表进行释放
+        // 检查 index_table
+        // ，得到应该释放的正确位置，若当前已满，需要将其当前index_table最后的标识位置为0，更改
+        // block_map 并写进，再读出下一个数据块索引表进行释放
         INDEX_TABLE_STRUC index = i;
         if (index && index % INDEX_TABLE_DATA_SIZE == 0) {
             INDEX_TABLE_STRUC temp = index_table[INDEX_TABLE_DATA_SIZE];
             index_table[INDEX_TABLE_DATA_SIZE] = 0;
-            write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+            write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE,
+                       (char *)index_table, BLOCK_SIZE);
             index_table_blocknr = temp;
             set_block_map(0, index_table_blocknr, block_map);
-            read_index_table(fp_xtfs, index_table, index_table_blocknr * BLOCK_SIZE);
+            read_index_table(fp_xtfs, index_table,
+                             index_table_blocknr * BLOCK_SIZE);
             index = 0;
         } else {
             index = index % INDEX_TABLE_DATA_SIZE;
@@ -191,7 +214,8 @@ int main(int argc, char* argv[]) {
     }
 
     // 将未被写入的 index_table 写入文件系统分区
-    write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)index_table, BLOCK_SIZE);
+    write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char *)index_table,
+               BLOCK_SIZE);
 
     // 修改inode记录的文件大小
     inode_table[inode_blocknr].size = filesize;
@@ -203,4 +227,3 @@ int main(int argc, char* argv[]) {
 
     return (EXIT_SUCCESS);
 }
-

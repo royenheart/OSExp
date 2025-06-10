@@ -1,11 +1,11 @@
+#include <dirent.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 /*
 编写一个程序，实现将一个目录的所有内容复制到另一个目录的功能。要求：
@@ -20,11 +20,11 @@
 void copy_directory(const char *src_dir, const char *dest_dir);
 
 /// @brief 拷贝文件
-/// @param src_file 原文件  
+/// @param src_file 原文件
 /// @param dest_file 目标文件
 void copy_file(const char *src_file, const char *dest_file);
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     // 读取目录名称
     if (argc < 2) {
         printf("Usage: %s <src_dir> <dest_dir>\n", argv[0]);
@@ -51,7 +51,8 @@ void copy_directory(const char *src_dir, const char *dest_dir) {
     // 不断获取原目录各个入口点（文件、目录，进行判断）
     while ((entry = readdir(dir)) != NULL) {
         // 跳过当前目录和上级目录（. 和 ..）
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        if (strcmp(entry->d_name, ".") == 0 ||
+            strcmp(entry->d_name, "..") == 0) {
             continue;
         }
 
@@ -61,7 +62,8 @@ void copy_directory(const char *src_dir, const char *dest_dir) {
 
         // 设置目标文件路径
         char dest_path[1024];
-        snprintf(dest_path, sizeof(dest_path), "%s/%s", dest_dir, entry->d_name);
+        snprintf(dest_path, sizeof(dest_path), "%s/%s", dest_dir,
+                 entry->d_name);
 
         struct stat st;
         // 获取文件状态

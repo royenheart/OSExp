@@ -1,13 +1,13 @@
-#include <unistd.h>
+#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
-#include <stdlib.h>
+#include <unistd.h>
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     pid_t pid = fork();
-    const char* file = argv[1];
+    const char *file = argv[1];
     if (pid == 0) {
         execl(file, NULL);
         perror("exec failed");

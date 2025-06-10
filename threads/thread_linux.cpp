@@ -1,7 +1,8 @@
-#include <iostream>
-#include <cstdlib>
-#include <unistd.h>
 #include <pthread.h>
+#include <unistd.h>
+
+#include <cstdlib>
+#include <iostream>
 
 #ifndef SUB_THREAD_SLEEP
 #define SUB_THREAD_SLEEP 2
@@ -28,7 +29,7 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t c = PTHREAD_COND_INITIALIZER;
 int who = WHO_MAIN;
 
-void* SubThread(void*) {
+void *SubThread(void *) {
     int i;
     for (i = 0; i < SUB_THREAD_LOOP; i++) {
         pthread_mutex_lock(&mutex);
@@ -42,7 +43,7 @@ void* SubThread(void*) {
     return NULL;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     cout << "Create Thread" << endl;
     pthread_t hThread;
     int ret;

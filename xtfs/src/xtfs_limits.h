@@ -38,7 +38,7 @@
 // 目录的数据块索引表类型
 typedef struct catalog CATALOG;
 // 目录的数据块索引表大小
-#define CATALOG_TABLE_SIZE (BLOCK_SIZE/sizeof(CATALOG))
+#define CATALOG_TABLE_SIZE (BLOCK_SIZE / sizeof(CATALOG))
 // 目录的有效数据块索引表大小，最后一块空间作跳转用
 #define CATALOG_TABLE_DATA_SIZE (CATALOG_TABLE_SIZE - 1)
 

@@ -1,10 +1,10 @@
+#include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <unistd.h>
 #include <sys/wait.h>
-#include <signal.h>
+#include <unistd.h>
 
 #define MAX_PROCESS 10
 
@@ -70,7 +70,7 @@ void display_pcb(ProcessControlBlock pcb[], int pcb_count) {
     }
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     ProcessControlBlock pcb[MAX_PROCESS];
     int pcb_count = 0;
 
@@ -88,7 +88,9 @@ int main(int argc, char* argv[]) {
         } else if (strcmp(cmd, "exit") == 0) {
             break;
         } else {
-            printf("Invalid command. Valid commands are 'create', 'kill', 'pcb', and 'exit'\n");
+            printf(
+                "Invalid command. Valid commands are 'create', 'kill', "
+                "'pcb', and 'exit'\n");
         }
     }
 

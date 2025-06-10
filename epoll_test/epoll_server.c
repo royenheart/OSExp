@@ -1,13 +1,13 @@
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <errno.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <signal.h>
+#include <unistd.h>
 
 #define MAX_EVENTS 10
 #define READ_SIZE 1024
@@ -22,9 +22,12 @@ void release() {
 }
 
 // 设置文件描述符为非阻塞模式
-// 使用 fcntl() 将服务器和客户端的套接字设置为非阻塞模式，这样在使用 epoll 的边缘触发模式时，避免出现阻塞问题。
+// 使用 fcntl() 将服务器和客户端的套接字设置为非阻塞模式，这样在使用 epoll
+// 的边缘触发模式时，避免出现阻塞问题。
 // 阻塞模式：操作会等待直到完成，适合简单的程序，但可能导致程序挂起。
-// 非阻塞模式：操作无法立即完成时立即返回错误，错误代码设置为 `EAGAIN` 或 `EWOULDBLOCK` 等，表示资源 I/O 操作资源当前暂时不可用，适合高并发应用，但编程复杂度较高。需要程序判断是需要稍后再试还是先处理其他任务等，状态复杂。
+// 非阻塞模式：操作无法立即完成时立即返回错误，错误代码设置为 `EAGAIN` 或
+// `EWOULDBLOCK` 等，表示资源 I/O
+// 操作资源当前暂时不可用，适合高并发应用，但编程复杂度较高。需要程序判断是需要稍后再试还是先处理其他任务等，状态复杂。
 int set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags == -1) {
@@ -42,7 +45,7 @@ int set_nonblocking(int fd) {
 void handle_connection(int client_fd) {
     char buffer[READ_SIZE];
     ssize_t bytes_read = read(client_fd, buffer, READ_SIZE - 1);
-    
+
     if (bytes_read > 0) {
         buffer[bytes_read] = '\0';
         printf("Received: %s\n", buffer);
@@ -56,7 +59,7 @@ void handle_connection(int client_fd) {
     }
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     int client_fd;
     // Internet Socket Address Description
     struct sockaddr_in server_addr;
@@ -67,22 +70,29 @@ int main(int argc, char* argv[]) {
     signal(SIGINT, release);
 
     // 创建服务器 socket
-    // Address Families 地址族（domain），用于制定 socket 地址类型。不同地址族支持不同协议和网络类型：
+    // Address Families 地址族（domain），用于制定 socket
+    // 地址类型。不同地址族支持不同协议和网络类型：
     // 1. AF_INET：表示 ipv4 协议的地址族
     // 2. AF_INET6：表示 ipv6 协议的地址族
     // Sockets 类型（socket_type.h）：
-    // 1. SOCK_STREAM：面向连接的，可靠的字节流服务，通常为 TCP 协议。Sequenced, reliable, connection-based byte streams.
-    // 2. SOCK_DGRAM：无连接的，数据报格式的通信。Connectionless, unreliable datagrams of fixed maximum length.
+    // 1. SOCK_STREAM：面向连接的，可靠的字节流服务，通常为 TCP 协议。Sequenced,
+    // reliable, connection-based byte streams.
+    // 2. SOCK_DGRAM：无连接的，数据报格式的通信。Connectionless, unreliable
+    // datagrams of fixed maximum length.
     // 3. SOCK_RAW：原始协议接口，可用于自定义协议或进行网络分析。
-    // 4. SOCK_SEQPACKET：类似 SOCK_STREAM，但是消息是固定大小的报文通信，通常用于面向连接的协议如 SCTP。Sequenced, reliable, connection-based, datagrams of fixed maximum length.
-    // socket：创建 socket 并返回文件描述符。(int __domain, int __type, int __protocal)，指定地址类型、Socket 类型、使用的协议（0 表示自动选择）
+    // 4. SOCK_SEQPACKET：类似
+    // SOCK_STREAM，但是消息是固定大小的报文通信，通常用于面向连接的协议如
+    // SCTP。Sequenced, reliable, connection-based, datagrams of fixed maximum
+    // length. socket：创建 socket 并返回文件描述符。(int __domain, int __type,
+    // int __protocal)，指定地址类型、Socket 类型、使用的协议（0 表示自动选择）
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("socket can't create");
         exit(EXIT_FAILURE);
     }
 
     // 设置 SO_REUSEPORT 选项
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) <
+        0) {
         perror("setsockopt");
         close(server_fd);
         exit(EXIT_FAILURE);
@@ -95,7 +105,8 @@ int main(int argc, char* argv[]) {
     server_addr.sin_port = htons(PORT);
 
     // 绑定端口
-    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) ==
+        -1) {
         perror("socket can't bind to addr");
         close(server_fd);
         exit(EXIT_FAILURE);
@@ -163,7 +174,8 @@ int main(int argc, char* argv[]) {
                 // 处理新的客户端连接
                 struct sockaddr_in client_addr;
                 socklen_t client_addr_len = sizeof(client_addr);
-                client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+                client_fd = accept(server_fd, (struct sockaddr *)&client_addr,
+                                   &client_addr_len);
                 if (client_fd == -1) {
                     perror("accept");
                     continue;

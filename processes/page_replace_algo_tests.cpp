@@ -1,14 +1,14 @@
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
-#include <iostream>
-#include <tuple>
 #include <functional>
-#include <vector>
+#include <iostream>
 #include <random>
+#include <tuple>
+#include <vector>
 
 // 页面尺寸大小
-#define PAGESIZE 8 
+#define PAGESIZE 8
 // 各个算法实验次数
 #define TEST_TIMES 100
 // 序列长度
@@ -17,42 +17,42 @@
 // 声明一种新类型--物理块类型
 typedef struct BLOCK {
     // 页号
-    int pagenum;  
+    int pagenum;
     // 访问量,其值表示多久未被访问
-    int accessed; 
+    int accessed;
 } BLOCK;
 // 程序计数器，用来记录对应的页号
-int pc;                     
+int pc;
 // 缺页计数器，用来记录缺页的次数
-int n;                      
+int n;
 // 用来存储 SEQ_LEN 条随机数
-int *num = NULL;        
+int *num = NULL;
 // 定义一大小为 8 的物理块数组
-BLOCK block[PAGESIZE];      
+BLOCK block[PAGESIZE];
 // 程序初始化函数
-void init();                
+void init();
 // 查找物理块中是否有该页面
-int findExist(int curpage); 
+int findExist(int curpage);
 // 查找是否有空闲物理块
-int findSpace();            
+int findSpace();
 // 查找应予置换的页面
-int findReplace();          
+int findReplace();
 // 显示
-void display();             
+void display();
 // 产生 SEQ_LEN 条随机数,显示并存储到 num[SEQ_LEN]
-void randam();          
-// 显示调用的页面队列    
-void pagestring();      
+void randam();
+// 显示调用的页面队列
+void pagestring();
 
 int OPT();
 int LRU();
 int FIFO();
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     // 记录页面缺失率
     std::vector<std::tuple<int, int, int>> page_losts(TEST_TIMES);
 
-    num = (int*)malloc(sizeof(int) * SEQ_LEN);
+    num = (int *)malloc(sizeof(int) * SEQ_LEN);
 
     for (int i = 0; i < TEST_TIMES; i++) {
         // 根据时间生成调用序列
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
         int l3 = LRU();
         page_losts.push_back(std::make_tuple(l1, l2, l3));
     }
-    
+
     int time = -1;
     double avg_l1, avg_l2, avg_l3;
     for (auto t : page_losts) {
@@ -79,17 +79,23 @@ int main(int argc, char* argv[]) {
         printf("OPT 缺页次数第%d次为：%d\n", time, l1);
         printf("FIFO 缺页次数第%d次为：%d\n", time, l2);
         printf("LRU 缺页次数第%d次为：%d\n", time, l3);
-        printf("OPT 缺页率第%d次为：%.2lf%\n", time, ((double)l1 / SEQ_LEN) * 100.0);
-        printf("FIFO 缺页率第%d次为：%.2lf%\n", time, ((double)l2 / SEQ_LEN) * 100.0);
-        printf("LRU 缺页率第%d次为：%.2lf%\n", time, ((double)l3 / SEQ_LEN) * 100.0);
+        printf("OPT 缺页率第%d次为：%.2lf%\n", time,
+               ((double)l1 / SEQ_LEN) * 100.0);
+        printf("FIFO 缺页率第%d次为：%.2lf%\n", time,
+               ((double)l2 / SEQ_LEN) * 100.0);
+        printf("LRU 缺页率第%d次为：%.2lf%\n", time,
+               ((double)l3 / SEQ_LEN) * 100.0);
         avg_l1 += l1;
         avg_l2 += l2;
         avg_l3 += l3;
     }
 
-    printf("OPT 平均缺页率为：%.2lf%\n", (avg_l1 / (SEQ_LEN * TEST_TIMES)) * 100.0);
-    printf("FIFO 平均缺页率为：%.2lf%\n", (avg_l2 / (SEQ_LEN * TEST_TIMES)) * 100.0);
-    printf("LRU 平均缺页率为：%.2lf%\n", (avg_l3 / (SEQ_LEN * TEST_TIMES)) * 100.0);
+    printf("OPT 平均缺页率为：%.2lf%\n",
+           (avg_l1 / (SEQ_LEN * TEST_TIMES)) * 100.0);
+    printf("FIFO 平均缺页率为：%.2lf%\n",
+           (avg_l2 / (SEQ_LEN * TEST_TIMES)) * 100.0);
+    printf("LRU 平均缺页率为：%.2lf%\n",
+           (avg_l3 / (SEQ_LEN * TEST_TIMES)) * 100.0);
 
     free(num);
 }
@@ -106,7 +112,7 @@ int findExist(int curpage) {
     // 检测到内存中有该页面,返回 block 中的位置
     for (int i = 0; i < PAGESIZE; i++) {
         if (block[i].pagenum == curpage) {
-            return i; 
+            return i;
         }
     }
     return -1;
@@ -118,7 +124,7 @@ int findSpace() {
         if (block[i].pagenum == -1) {
             return i;
         }
-    } 
+    }
     return -1;
 }
 
@@ -128,7 +134,7 @@ int findReplace() {
         // 当前查询到的物理块的未访问次数大于比较的物理块
         if (block[i].accessed > block[pos].accessed) {
             // 找到应该置换页面，返回 BLOCK 中位置
-            pos = i;                                 
+            pos = i;
         }
     }
     return pos;
@@ -148,7 +154,7 @@ void randam() {
     std::default_random_engine generator(rd());
     std::uniform_int_distribution<int> distribution(0, PAGESIZE * 20 - 1);
     for (int i = 0; i < SEQ_LEN; i++) {
-        pc = distribution(generator); 
+        pc = distribution(generator);
         num[i] = pc;
     }
 }
@@ -199,25 +205,25 @@ int OPT() {
     return n;
 }
 
-// 最近最久未使用算法 
+// 最近最久未使用算法
 int LRU() {
     int exist, space, position;
     int curpage;
     for (int i = 0; i < SEQ_LEN; i++) {
         pc = num[i];
         // 转换为页面号
-        curpage = pc / 10;          
+        curpage = pc / 10;
         // 查找物理块中是否有该页面,没有的话，置为 - 1 if (exist == -1)
-        exist = findExist(curpage); 
+        exist = findExist(curpage);
         if (exist == -1) {
             // 查找是否有空的物理块，没有的话，置为 - 1;有的话，把位置返回
-            space = findSpace(); 
+            space = findSpace();
             // 有空闲物理块，进行存储
             if (space != -1) {
                 block[space].pagenum = curpage;
                 display();
                 n = n + 1;
-            } else { 
+            } else {
                 // 没有空闲物理块，进行置换
                 position = findReplace();
                 block[position].pagenum = curpage;
@@ -225,11 +231,12 @@ int LRU() {
                 n++;
             }
         } else {
-            // 恢复存在的并刚访问过的BLOCK 中页面 accessed 为 - 1 for (int j = 0; j < pages ze; j++)
-            block[exist].accessed = -1; 
+            // 恢复存在的并刚访问过的BLOCK 中页面 accessed 为 - 1 for (int j =
+            // 0; j < pages ze; j++)
+            block[exist].accessed = -1;
         }
         // 把所有在页面里的页面号的访问次数加 1
-        block[i].accessed++; 
+        block[i].accessed++;
     }
     return n;
 }
@@ -241,18 +248,18 @@ int FIFO() {
     for (int i = 0; i < SEQ_LEN; i++) {
         pc = num[i];
         // 转换为页面号
-        curpage = pc / 10;          
+        curpage = pc / 10;
         // 查找物理块中是否有该页面,没有的话，置为-1 if (exist == -1)
-        exist = findExist(curpage); 
+        exist = findExist(curpage);
         if (exist == -1) {
             // 查找是否有空的物理块，没有的话，置为-1;有的话，把位置返回
-            space = findSpace(); 
+            space = findSpace();
             if (space != -1) {
                 block[space].pagenum = curpage;
                 display();
                 n = n + 1;
             } else {
-                position = findReplace(); // 没有空闲物理块，进行置换
+                position = findReplace();  // 没有空闲物理块，进行置换
                 block[position].pagenum = curpage;
                 display();
                 n++;

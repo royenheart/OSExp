@@ -10,9 +10,9 @@
  * https://blog.csdn.net/kingstar158/article/details/6859379
  */
 
+#include <fstream>
 #include <ios>
 #include <iostream>
-#include <fstream>
 #include <string>
 
 /**
@@ -31,12 +31,13 @@
 
 using namespace std;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     cout << "Test iostream: cout, cerr, clog" << endl << "from ostream" << endl;
     cout << "It's cout" << endl;
     cerr << "It's error" << endl;
     clog << "It's clog" << endl;
-    cout << "Test iostream: cin. Insert one number" << endl << "from isteem" << endl;
+    cout << "Test iostream: cin. Insert one number" << endl
+         << "from isteem" << endl;
     float a;
     cin >> a;
     cout << "Enter: " << a << endl;

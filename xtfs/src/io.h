@@ -23,7 +23,7 @@
  * @return size_t 0:写操作正常;非0:写操作异常
  * @attention 文件写的原始使用，不检查缓冲区大小等
  */
-size_t write_file(FILE* fp, long long offset, char* buffer, size_t size);
+size_t write_file(FILE *fp, long long offset, char *buffer, size_t size);
 
 /**
  * @brief 先对文件对应块 size 大小的部分全部覆盖，再将数据写入文件，
@@ -35,7 +35,8 @@ size_t write_file(FILE* fp, long long offset, char* buffer, size_t size);
  * @return size_t 0:写操作正常;非0:写操作异常
  * @attention 文件写的原始使用，不检查缓冲区大小等
  */
-size_t write_file_with_blank(FILE* fp, long long offset, char* buffer, size_t size);
+size_t write_file_with_blank(FILE *fp, long long offset, char *buffer,
+                             size_t size);
 
 /**
  * @brief 读取文件的数据
@@ -47,7 +48,7 @@ size_t write_file_with_blank(FILE* fp, long long offset, char* buffer, size_t si
  * @return size_t 0:读操作正常;非0:读操作异常
  * @attention 文件读的原始使用，不检查缓冲区大小等
  */
-size_t read_file(FILE* fp, long long offset, char* buffer, size_t size);
+size_t read_file(FILE *fp, long long offset, char *buffer, size_t size);
 
 /**
  * @brief 读取文件大小
@@ -55,4 +56,4 @@ size_t read_file(FILE* fp, long long offset, char* buffer, size_t size);
  * @param fp 打开的文件索引
  * @return size_t 文件大小
  */
-size_t read_file_size(FILE* fp);
+size_t read_file_size(FILE *fp);

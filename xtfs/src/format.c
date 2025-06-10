@@ -12,8 +12,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "xtfs_limits.h"
+
 #include "xtfs_check.h"
+#include "xtfs_limits.h"
 #include "xtfs_struct.h"
 
 /**
@@ -23,8 +24,8 @@
  * @param argv 参数内容
  * @return int 0 成功格式化
  */
-int main(int argc, char* argv[]) {
-    FILE* fp = NULL;
+int main(int argc, char *argv[]) {
+    FILE *fp = NULL;
     char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
     char blank[BLOCK_SIZE] = {0};
 
@@ -46,7 +47,7 @@ int main(int argc, char* argv[]) {
     root.size = 1;
     root.type = DIR_FILE;
     fseek(fp, 0, SEEK_SET);
-    fwrite((char*)&root, 1, sizeof(root), fp);
+    fwrite((char *)&root, 1, sizeof(root), fp);
     fseek(fp, 2 * BLOCK_SIZE, SEEK_SET);
     fwrite(blank, 1, BLOCK_SIZE, fp);
     // 设置初始数据块位图，0，1，2三个数据块都被占用（2被根目录占用）
@@ -56,4 +57,3 @@ int main(int argc, char* argv[]) {
 
     return (EXIT_SUCCESS);
 }
-

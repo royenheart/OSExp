@@ -1,17 +1,17 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <errno.h>
 
-pid_t wait(int* stat_loc);
-void perror(const char* s);
+pid_t wait(int *stat_loc);
+void perror(const char *s);
 
 int errno;
 int global;
 
-int main(int argc, char* argv) {
+int main(int argc, char *argv[]) {
     int local = 0;
     int i;
     pid_t child;
@@ -29,7 +29,7 @@ int main(int argc, char* argv) {
     printf("Now it is in parent process.\n");
     for (i = 0; i < 10; i++) {
         sleep(2);
-        printf("Parent loop:%d\n",  i);
+        printf("Parent loop:%d\n", i);
         if (i == 2) {
             if ((child = fork()) == -1) {
                 printf("Fork Error.\n");
@@ -50,6 +50,7 @@ int main(int argc, char* argv) {
         }
     }
     global = local + 1;
-    printf("Parent process is end, the local is %d, the global is %d.\n", local, global);
+    printf("Parent process is end, the local is %d, the global is %d.\n", local,
+           global);
     exit(0);
 }

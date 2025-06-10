@@ -10,6 +10,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -19,9 +20,9 @@ extern "C" {
 #include "../xtfs_struct.h"
 }
 
-class FOLDER_LEX: public testing::Test {
-  protected:
-    char** str = NULL;
+class FOLDER_LEX : public testing::Test {
+   protected:
+    char **str = NULL;
     int ret;
     virtual void SetUp() {}
 
@@ -90,19 +91,29 @@ TEST_F(FOLDER_LEX, IDENTIFY_NULL3) {
 }
 
 TEST_F(FOLDER_LEX, IDENTIFY_NULL4) {
-    ret = get_folders("//sdadasdasdas-sadasdasdasdasdsd343cxsdsdadasdasdas-sadasdasdasdasdsd343cxsd/", &str);
+    ret = get_folders(
+        "//"
+        "sdadasdasdas-sadasdasdasdasdsd343cxsdsdadasdasdas-"
+        "sadasdasdasdasdsd343cxsd/",
+        &str);
     ASSERT_EQ(ret, ERROR_PARSE);
 }
 
 TEST_F(FOLDER_LEX, IDENTIFY_NULL5) {
-    ret = get_folders("s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/"
-                      "s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/"
-                      "s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/"
-                      "s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/", &str);
+    ret = get_folders(
+        "s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/"
+        "s/s/s/s/s/s/s/s/s/"
+        "s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/"
+        "s/s/s/s/s/s/s/s/s/"
+        "s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/"
+        "s/s/s/s/s/s/s/s/s/"
+        "s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/"
+        "s/s/s/s/s/s/s/s/s/",
+        &str);
     ASSERT_EQ(ret, ERROR_PARSE);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

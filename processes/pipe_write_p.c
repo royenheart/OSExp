@@ -1,19 +1,19 @@
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <signal.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
+#include <unistd.h>
 
 #define BUFFER 80
 #define ASCII_RANDOM (rand() % 95 + 32)
 #define TIME_RANDOM (rand() % 5 + 1)
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     // 读取具名管道文件名称
     if (argc < 2) {
         printf("Usage: %s <filename>\n", argv[0]);
@@ -21,13 +21,13 @@ int main(int argc, char* argv[]) {
     }
 
     srand((unsigned)time(NULL));
-    char* FIFO = argv[1];
+    char *FIFO = argv[1];
     char buffer[BUFFER] = {0};
     const int BUFFER_SIZE = BUFFER * sizeof(char);
     int myid = getpid();
 
     int fd = open(FIFO, O_WRONLY);
-    for(int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
         char s[20] = {0};
         for (int j = 0; j < 20; j++) {
             s[j] = ASCII_RANDOM;
@@ -38,5 +38,5 @@ int main(int argc, char* argv[]) {
         sleep(TIME_RANDOM);
     }
     // 关闭管道文件
-    close(fd);   
+    close(fd);
 }

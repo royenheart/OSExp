@@ -1,7 +1,8 @@
 #include <stdio.h>
+
 #include "stress_test.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     matrix_cal(3000, 4000, 9000);
     matrix_cal(3000, 3000, 3000);
     matrix_cal(3000, 8000, 1000);

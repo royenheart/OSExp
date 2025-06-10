@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char* argv) {
+int main(int argc, char *argv[]) {
 #ifdef _WIN32
     const char sys[] = "Windows system";
 #elif defined(__linux__)

@@ -1,12 +1,12 @@
 /*  fork usage  */
-#include <unistd.h>
-#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 int main(int argc, char *argv[]) {
     pid_t child;
-    if ((child = fork()) == -1) { // 创建子进程，的
+    if ((child = fork()) == -1) {  // 创建子进程，的
         // 返回 -1 表示创建子进程失败，此时调用 perror 函数返回错误信息
         perror("fork");
         exit(EXIT_FAILURE);

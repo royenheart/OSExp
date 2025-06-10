@@ -9,20 +9,21 @@
  *
  */
 
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <pthread.h>
-#include <unistd.h>
-#include <semaphore.h>
-#include <cstdlib>
-#include <ctime>
 
 #define MAX_LOOP 4
 #define MIN_SLEEP_TIME 1
 #define MAX_SLEEP_TIME 5
 #define RWTERS 5
-#define RAND_TIME( x , y ) rand() % y + x;
+#define RAND_TIME(x, y) rand() % y + x;
 
 using namespace std;
 
@@ -52,8 +53,8 @@ void readBook(string who) {
     cout << who << " is reading. read: " << book << endl;
 }
 
-void* read(void* header) {
-    thread_header* myheader = (thread_header*)header;
+void *read(void *header) {
+    thread_header *myheader = (thread_header *)header;
     int i;
     for (i = 0; i < MAX_LOOP; i++) {
         sleep(myheader->sleep_time);
@@ -75,11 +76,11 @@ void* read(void* header) {
         }
         sem_post(&x);
     }
-    return ((void*)0);
+    return ((void *)0);
 }
 
-void* write(void* header) {
-    thread_header* myheader = (thread_header*)header;
+void *write(void *header) {
+    thread_header *myheader = (thread_header *)header;
     int i;
     for (i = 0; i < MAX_LOOP; i++) {
         sleep(myheader->sleep_time);
@@ -103,10 +104,10 @@ void* write(void* header) {
         }
         sem_post(&y);
     }
-    return ((void*)0);
+    return ((void *)0);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     init();
 
     int i;
@@ -123,8 +124,8 @@ int main(int argc, char* argv[]) {
         readH[i].sleep_time = RAND_TIME(MIN_SLEEP_TIME, MAX_SLEEP_TIME);
         writeH[i].name = writer[i].str();
         writeH[i].sleep_time = RAND_TIME(MIN_SLEEP_TIME, MAX_SLEEP_TIME);
-        pthread_create(&readers[i], NULL, read, (void*)&readH[i]);
-        pthread_create(&writers[i], NULL, write, (void*)&writeH[i]);
+        pthread_create(&readers[i], NULL, read, (void *)&readH[i]);
+        pthread_create(&writers[i], NULL, write, (void *)&writeH[i]);
     }
 
     for (i = 0; i < RWTERS; i++) {

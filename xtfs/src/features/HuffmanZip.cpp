@@ -10,20 +10,22 @@
  */
 
 #include <bits/stdc++.h>
+
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
 #include <cstring>
+#include <fstream>
+
 
 using namespace std;
 
 extern "C" {
-#include "../xtfs_limits.h"
-#include "../xtfs_struct.h"
-#include "../xtfs_manage.h"
-#include "../xtfs_check.h"
-#include "../lex/folder_lex.h"
 #include "../io.h"
+#include "../lex/folder_lex.h"
+#include "../xtfs_check.h"
+#include "../xtfs_limits.h"
+#include "../xtfs_manage.h"
+#include "../xtfs_struct.h"
 }
 
 #define CHARSET_SIZE 256
@@ -35,8 +37,8 @@ struct node {
     int alpha;
 } ls, rs;
 
-bool operator <(node a, node b) {return a.val > b.val;}
-bool operator >(node a, node b) {return a.val < b.val;}
+bool operator<(node a, node b) { return a.val > b.val; }
+bool operator>(node a, node b) { return a.val < b.val; }
 string file;
 string file_trans;
 int filesize;
@@ -52,13 +54,13 @@ int tree_stack_size;
 vector<int> vec_alpha;
 
 char fs_name[MAX_FS_NAME_LENGTH + 1] = {0};
-FILE* fp_xtfs = NULL;
+FILE *fp_xtfs = NULL;
 BLOCK_MAP_TABLE_STRUC lowbit[BLOCK_MAP_TABLE_SIZE];
 BLOCK_MAP_STRUC block_map[BLOCK_SIZE];
 struct inode inode_table[NR_INODE];
 
-int read_blocks(char* filename) {
-    FILE* fp = NULL;
+int read_blocks(char *filename) {
+    FILE *fp = NULL;
     int need;
     size_t size;
     char buffer[BLOCK_SIZE];
@@ -79,18 +81,22 @@ int read_blocks(char* filename) {
 
 void dfs(int num) {
     if (vec[num].lson) {
-        tree_stack += '0'; tree_stack_size++;
+        tree_stack += '0';
+        tree_stack_size++;
         s += "0";
         dfs(vec[num].lson);
         s.pop_back();
-        tree_stack += '1'; tree_stack_size++;
+        tree_stack += '1';
+        tree_stack_size++;
     }
     if (vec[num].rson) {
-        tree_stack += '0'; tree_stack_size++;
+        tree_stack += '0';
+        tree_stack_size++;
         s += "1";
         dfs(vec[num].rson);
         s.pop_back();
-        tree_stack += '1'; tree_stack_size++;
+        tree_stack += '1';
+        tree_stack_size++;
     }
     if (!vec[num].lson && !vec[num].rson) {
         encoder[vec[num].alpha] = s;
@@ -112,17 +118,17 @@ void HuffmanZip() {
     for (int i = 0; i < filesize; i++) {
         appear[file[i]]++;
     }
-    node* newnode = new node();
+    node *newnode = new node();
     vec.push_back(*newnode);
     int num_char = 0;
     for (int i = 0; i < CHARSET_SIZE; i++) {
         if (appear[i]) {
             num_char++;
-            newnode -> num = ++col;
-            newnode -> alpha = i;
-            newnode -> lson = 0;
-            newnode -> rson = 0;
-            newnode -> val = appear[i];
+            newnode->num = ++col;
+            newnode->alpha = i;
+            newnode->lson = 0;
+            newnode->rson = 0;
+            newnode->val = appear[i];
             vec.push_back(*newnode);
             pq.push(*newnode);
         }
@@ -135,11 +141,11 @@ void HuffmanZip() {
         }
         rs = pq.top();
         pq.pop();
-        newnode -> num = ++col;
-        newnode -> alpha = 0;
-        newnode -> lson = ls.num;
-        newnode -> rson = rs.num;
-        newnode -> val = ls.val + rs.val;
+        newnode->num = ++col;
+        newnode->alpha = 0;
+        newnode->lson = ls.num;
+        newnode->rson = rs.num;
+        newnode->val = ls.val + rs.val;
         vec.push_back(*newnode);
         pq.push(*newnode);
     }
@@ -203,11 +209,11 @@ void HuffmanZip() {
     filesize = file.length();
 }
 
-int main(int argc, char* argv[]) {
-    char** dirnames = NULL;
+int main(int argc, char *argv[]) {
+    char **dirnames = NULL;
     int dir_num;
     int i;
-    FILE* fp = NULL;
+    FILE *fp = NULL;
     // 目录所需数据
     CATALOG dir_index_table[CATALOG_TABLE_SIZE];
     // 文件所需数据
@@ -243,16 +249,20 @@ int main(int argc, char* argv[]) {
 
     inode_blocknr = get_root_inode(inode_table);
     if (inode_blocknr == NOT_FOUND) {
-        printf("Root has been destroyed! This file system may not be in secure state!\n");
+        printf(
+            "Root has been destroyed! This file system may not be in secure "
+            "state!\n");
         fclose(fp_xtfs);
         xtfs_exit(EXIT_FAILURE);
     }
     index_table_blocknr = inode_table[inode_blocknr].index_table_blocknr;
-    read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
+    read_dir_index_table(fp_xtfs, dir_index_table,
+                         index_table_blocknr * BLOCK_SIZE);
 
     for (i = 0; i < dir_num; i++) {
         int child_in_father_index;
-        child_in_father_index = find_dir_index_table(dirnames[i], dir_index_table, DIR_FILE);
+        child_in_father_index =
+            find_dir_index_table(dirnames[i], dir_index_table, DIR_FILE);
         if (child_in_father_index == NOT_FOUND) {
             printf("No such dir!\n");
             fclose(fp_xtfs);
@@ -260,7 +270,8 @@ int main(int argc, char* argv[]) {
         } else {
             int curr_inode = dir_index_table[child_in_father_index].pos;
             index_table_blocknr = inode_table[curr_inode].index_table_blocknr;
-            read_dir_index_table(fp_xtfs, dir_index_table, index_table_blocknr * BLOCK_SIZE);
+            read_dir_index_table(fp_xtfs, dir_index_table,
+                                 index_table_blocknr * BLOCK_SIZE);
             inode_blocknr = curr_inode;
         }
     }
@@ -268,15 +279,18 @@ int main(int argc, char* argv[]) {
     // 在inode表中申请一个空闲inode，存放文件的inode信息
     inode_blocknr = get_empty_inode(inode_table, dirnames[dir_num], type);
     // 在目录中添加对应的表项，并重新写回文件系统分区
-    get_empty_dir_index(dir_index_table, dirnames[dir_num], type, inode_blocknr);
-    write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE, (char*)dir_index_table, CATALOG_TABLE_SIZE * sizeof(CATALOG));
+    get_empty_dir_index(dir_index_table, dirnames[dir_num], type,
+                        inode_blocknr);
+    write_file(fp_xtfs, index_table_blocknr * BLOCK_SIZE,
+               (char *)dir_index_table, CATALOG_TABLE_SIZE * sizeof(CATALOG));
 
     read_blocks(argv[1]);
     HuffmanZip();
     filesize = file.length();
     int pos = 0;
     spec_huffman_zip_params_load(filesize, &pos, file.c_str());
-    index_table_blocknr = copy_blocks(filesize, type, block_map, lowbit, fp_xtfs);
+    index_table_blocknr =
+        copy_blocks(filesize, type, block_map, lowbit, fp_xtfs);
 
     inode_table[inode_blocknr].size = filesize;
     inode_table[inode_blocknr].index_table_blocknr = index_table_blocknr;

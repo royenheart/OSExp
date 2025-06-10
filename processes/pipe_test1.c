@@ -1,15 +1,14 @@
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     int filedes[2];
     char buffer[80];
     // 创建管道
-    if (pipe(filedes) < 0)
-        printf("pipe error");
+    if (pipe(filedes) < 0) printf("pipe error");
     // fork 父子进程
-    if (fork() > 0) { // 父进程
+    if (fork() > 0) {  // 父进程
         // 设置信息
         char s[] = "hello!\n";
         // 关闭读入端

@@ -4,6 +4,8 @@ project(OSExp)
 
 enable_testing()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 add_subdirectory(functions_test)
 add_subdirectory(threads)
 add_subdirectory(processes)

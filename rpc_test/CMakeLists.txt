@@ -39,7 +39,8 @@ if(NOT brpc_POPULATED)
   # ...
  
   # DO NOT Bring the populated content into the build
-  # add_subdirectory(${depname_SOURCE_DIR} ${depname_BINARY_DIR})
+  # FetchContent will split the configure to BINARY_DIR, so needs to add two dirs
+  # add_subdirectory(${brpc_SOURCE_DIR} ${brpc_BINARY_DIR})
 endif()
 
 ## ExternalProject only run in the cmake build steps

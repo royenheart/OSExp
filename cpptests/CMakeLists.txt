@@ -20,6 +20,7 @@ endif()
 
 add_executable(smartptr smartptr.cpp)
 add_executable(lock_guard_tests lock_guard_tests.cpp)
+add_executable(ref_tests ref_tests.cpp)
 add_executable(move_semantics_benchmark move_semantics_benchmark.cpp)
 
 target_link_libraries(move_semantics_benchmark benchmark::benchmark)
